@@ -9,10 +9,10 @@ export class AdministradorController {
 
   @Post()
   create(@Body() createAdministradorDto: CreateAdministradorDto) {
-    return this.administradorService.create(createAdministradorDto);
+    return this.administradorService.createAdministrador(createAdministradorDto);
   }
 
-  @Get()
+  @Get('all')
   findAll() {
     return this.administradorService.findAll();
   }
@@ -24,11 +24,11 @@ export class AdministradorController {
 
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateAdministradorDto: UpdateAdministradorDto) {
-    return this.administradorService.update(+id, updateAdministradorDto);
+    return this.administradorService.updateAdministrador(+id, updateAdministradorDto);
   }
 
   @Delete(':id')
   remove(@Param('id') id: string) {
-    return this.administradorService.remove(+id);
+    return this.administradorService.removeAdministrador(+id);
   }
 }

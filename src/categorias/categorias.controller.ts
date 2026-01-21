@@ -9,10 +9,10 @@ export class CategoriasController {
 
   @Post()
   create(@Body() createCategoriaDto: CreateCategoriaDto) {
-    return this.categoriasService.create(createCategoriaDto);
+    return this.categoriasService.createCategoria(createCategoriaDto);
   }
 
-  @Get()
+  @Get('all')
   findAll() {
     return this.categoriasService.findAll();
   }
@@ -24,11 +24,11 @@ export class CategoriasController {
 
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateCategoriaDto: UpdateCategoriaDto) {
-    return this.categoriasService.update(+id, updateCategoriaDto);
+    return this.categoriasService.updateCategoria(+id, updateCategoriaDto);
   }
 
   @Delete(':id')
   remove(@Param('id') id: string) {
-    return this.categoriasService.remove(+id);
+    return this.categoriasService.removeCategoria(+id);
   }
 }

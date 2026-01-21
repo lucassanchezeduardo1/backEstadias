@@ -9,10 +9,10 @@ export class InstitucionesController {
 
   @Post()
   create(@Body() createInstitucioneDto: CreateInstitucioneDto) {
-    return this.institucionesService.create(createInstitucioneDto);
+    return this.institucionesService.createInstitucion(createInstitucioneDto);
   }
 
-  @Get()
+  @Get('all')
   findAll() {
     return this.institucionesService.findAll();
   }
@@ -24,11 +24,11 @@ export class InstitucionesController {
 
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateInstitucioneDto: UpdateInstitucioneDto) {
-    return this.institucionesService.update(+id, updateInstitucioneDto);
+    return this.institucionesService.updateInatitucion(+id, updateInstitucioneDto);
   }
 
   @Delete(':id')
   remove(@Param('id') id: string) {
-    return this.institucionesService.remove(+id);
+    return this.institucionesService.removeIstitucion(+id);
   }
 }

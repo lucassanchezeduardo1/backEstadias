@@ -9,10 +9,10 @@ export class UsuariosController {
 
   @Post()
   create(@Body() createUsuarioDto: CreateUsuarioDto) {
-    return this.usuariosService.create(createUsuarioDto);
+    return this.usuariosService.createUsuario(createUsuarioDto);
   }
 
-  @Get()
+  @Get('all')
   findAll() {
     return this.usuariosService.findAll();
   }
@@ -24,11 +24,11 @@ export class UsuariosController {
 
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateUsuarioDto: UpdateUsuarioDto) {
-    return this.usuariosService.update(+id, updateUsuarioDto);
+    return this.usuariosService.updateUsuario(+id, updateUsuarioDto);
   }
 
   @Delete(':id')
   remove(@Param('id') id: string) {
-    return this.usuariosService.remove(+id);
+    return this.usuariosService.removeUsuario(+id);
   }
 }

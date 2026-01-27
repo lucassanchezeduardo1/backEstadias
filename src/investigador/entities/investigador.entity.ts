@@ -9,7 +9,7 @@ export class Investigador {
   nombre: string;
   @Column({  length: 100,nullable: false })
   apellidos: string;
-  @Column({ type: 'mediumblob',nullable: false })
+  @Column({ type: 'mediumblob', nullable: false })
   foto_perfil: Buffer;
   @Column({ length: 100,nullable: false })
   grado_academico: string;

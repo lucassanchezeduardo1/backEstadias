@@ -6,6 +6,7 @@ import { AdministradorModule } from './administrador/administrador.module';
 import { InvestigadorModule } from './investigador/investigador.module';
 import { InstitucionesModule } from './instituciones/instituciones.module';
 import { CategoriasModule } from './categorias/categorias.module';
+import { PublicacionModule } from './publicacion/publicacion.module';
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { CategoriasModule } from './categorias/categorias.module';
     InvestigadorModule,
     InstitucionesModule,
     CategoriasModule,
+    PublicacionModule,
   ],
   controllers: [AppController],
   providers: [AppService],

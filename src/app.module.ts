@@ -3,6 +3,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AdministradorModule } from './administrador/administrador.module';
+import { InvestigadorModule } from './investigador/investigador.module';
 import { InstitucionesModule } from './instituciones/instituciones.module';
 import { CategoriasModule } from './categorias/categorias.module';
 
@@ -19,6 +20,7 @@ import { CategoriasModule } from './categorias/categorias.module';
       synchronize: true, 
     }),
     AdministradorModule,
+    InvestigadorModule,
     InstitucionesModule,
     CategoriasModule,
   ],

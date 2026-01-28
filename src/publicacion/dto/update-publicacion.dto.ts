@@ -10,7 +10,7 @@ export class UpdatePublicacionDto {
     @IsInt()
     @IsOptional()
     @Type(() => Number)
-    categoria_id: number;
+    categoria_id?: number;
 
     @IsString()
     @IsOptional()

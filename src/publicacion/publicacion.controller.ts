@@ -5,13 +5,16 @@ import { UpdatePublicacionDto } from './dto/update-publicacion.dto';
 
 @Controller('publicacion')
 export class PublicacionController {
-  constructor(private readonly publicacionService: PublicacionService) {}
+  constructor(private readonly publicacionService: PublicacionService) { }
 
   @Post()
-  create(@Body() createPublicacionDto: CreatePublicacionDto,@Req() req,) {
+  create(
+    @Body() createPublicacionDto: CreatePublicacionDto,
+    @Body('investigadorId', ParseIntPipe) investigadorId: number,
+  ) {
     return this.publicacionService.createPublicacion(
       createPublicacionDto,
-      req.user.id, // investigador autenticado
+      investigadorId,
     );
   }
 
@@ -22,13 +25,17 @@ export class PublicacionController {
 
   // OBTENER PUBLICACIONES POR CATEGORÍA
   @Get('categoria/:categoriaId')
-  findByCategoria(@Param('categoriaId', ParseIntPipe) categoriaId: number,) {
+  findByCategoria(
+    @Param('categoriaId', ParseIntPipe) categoriaId: number,
+  ) {
     return this.publicacionService.findByCategoria(categoriaId);
   }
 
   // OBTENER PUBLICACIONES DE UN INVESTIGADOR
   @Get('investigador/:investigadorId')
-  findByInvestigador(@Param('investigadorId', ParseIntPipe) investigadorId: number,) {
+  findByInvestigador(
+    @Param('investigadorId', ParseIntPipe) investigadorId: number,
+  ) {
     return this.publicacionService.findByInvestigador(investigadorId);
   }
 
@@ -40,28 +47,35 @@ export class PublicacionController {
 
   // OBTENER PUBLICACIÓN Y AUMENTAR VISTAS
   @Get(':id/vistas')
-  findOneAndIncrementVistas(@Param('id', ParseIntPipe) id: number,) {
+  findOneAndIncrementVistas(
+    @Param('id', ParseIntPipe) id: number,
+  ) {
     return this.publicacionService.findOneAndIncrementVistas(id);
   }
 
   // ACTUALIZAR PUBLICACIÓN
   @Patch(':id')
   update(
-    @Param('id', ParseIntPipe) id: number,@Body() updatePublicacionDto: UpdatePublicacionDto,@Req() req,
+    @Param('id', ParseIntPipe) id: number,
+    @Body() updatePublicacionDto: UpdatePublicacionDto,
+    @Body('investigadorId', ParseIntPipe) investigadorId: number,
   ) {
     return this.publicacionService.updatePublicacion(
       id,
       updatePublicacionDto,
-      req.user.id, // investigador autenticado
+      investigadorId,
     );
   }
 
   // ELIMINAR PUBLICACIÓN
   @Delete(':id')
-  remove(@Param('id', ParseIntPipe) id: number,@Req() req,) {
+  remove(
+    @Param('id', ParseIntPipe) id: number,
+    @Body('investigadorId', ParseIntPipe) investigadorId: number,
+  ) {
     return this.publicacionService.removePublicacion(
       id,
-      req.user.id, //investigador autenticado
+      investigadorId,
     );
   }
 }

@@ -180,43 +180,49 @@ export class PublicacionService {
 
   // ACTUALIZAR PUBLICACIÓN
   async updatePublicacion(
-    id: number,
-    updatePublicacionDto: UpdatePublicacionDto,
-    investigadorId: number //AGREGADO: Para verificar que sea el dueño
-  ) {
-    try {
-      const publicacion = await this.publicacionRepo.findOneBy({ id });
+  id: number,
+  updatePublicacionDto: UpdatePublicacionDto,
+  investigadorId: number,
+) {
+  try {
+    const publicacion = await this.publicacionRepo.findOne({
+      where: { id },
+      relations: ['investigador_principal', 'categoria'],
+    });
 
-      if (!publicacion) {
-        throw new NotFoundException(`Publicación con el id: ${id} no encontrada`);
-      }
-
-      // Verificar que el investigador sea el dueño de la publicación
-      if (publicacion.investigador_principal.id !== investigadorId) {
-        throw new BadRequestException('No tienes permiso para editar esta publicación');
-      }
-
-      // Actualizar los datos
-      const updatePublicacion = this.publicacionRepo.merge(
-        publicacion,
-        updatePublicacionDto
-      );
-
-      const savedPublicacion = await this.publicacionRepo.save(updatePublicacion);
-
-      return {
-        message: 'Publicación actualizada exitosamente',
-        publicacion: savedPublicacion
-      };
-
-    } catch (error) {
-      if (error instanceof NotFoundException || error instanceof BadRequestException) {
-        throw error;
-      }
-      console.error('Error al actualizar publicación:', error);
-      throw new InternalServerErrorException('Error al actualizar la publicación');
+    if (!publicacion) {
+      throw new NotFoundException(`Publicación con el id: ${id} no encontrada`);
     }
+
+    if (publicacion.investigador_principal.id !== investigadorId) {
+      throw new BadRequestException('No tienes permiso para editar esta publicación');
+    }
+
+    //Actualizar campos simples
+    const { categoria_id, ...rest } = updatePublicacionDto;
+    Object.assign(publicacion, rest);
+
+    //Actualizar relación de categoría (IMPORTANTE)
+    if (categoria_id) {
+      publicacion.categoria = { id: categoria_id } as any;
+    }
+
+    const savedPublicacion = await this.publicacionRepo.save(publicacion);
+
+    return {
+      message: 'Publicación actualizada exitosamente',
+      publicacion: savedPublicacion,
+    };
+
+  } catch (error) {
+    if (error instanceof NotFoundException || error instanceof BadRequestException) {
+      throw error;
+    }
+    console.error('Error al actualizar publicación:', error);
+    throw new InternalServerErrorException('Error al actualizar la publicación');
   }
+}
+
 
   // ELIMINAR PUBLICACIÓN
   async removePublicacion(id: number, investigadorId: number) {

@@ -30,7 +30,7 @@ export class CreatePublicacionDto {
 
     @IsString()
     @IsNotEmpty()
-    @MinLength(500)
+    @MinLength(5)//cambiar despues a 500
     sintesis_investigador: string;
 
     @IsString()

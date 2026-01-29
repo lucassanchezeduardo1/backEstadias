@@ -8,6 +8,7 @@ import { InstitucionesModule } from './instituciones/instituciones.module';
 import { CategoriasModule } from './categorias/categorias.module';
 import { PublicacionModule } from './publicacion/publicacion.module';
 import { UsuariosModule } from './usuarios/usuarios.module';
+import { ComentariosModule } from './comentarios/comentarios.module';
 
 @Module({
   imports: [
@@ -27,6 +28,7 @@ import { UsuariosModule } from './usuarios/usuarios.module';
     CategoriasModule,
     PublicacionModule,
     UsuariosModule,
+    ComentariosModule,
   ],
   controllers: [AppController],
   providers: [AppService],

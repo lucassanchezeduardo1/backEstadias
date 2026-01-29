@@ -7,6 +7,7 @@ import { InvestigadorModule } from './investigador/investigador.module';
 import { InstitucionesModule } from './instituciones/instituciones.module';
 import { CategoriasModule } from './categorias/categorias.module';
 import { PublicacionModule } from './publicacion/publicacion.module';
+import { UsuariosModule } from './usuarios/usuarios.module';
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { PublicacionModule } from './publicacion/publicacion.module';
     InstitucionesModule,
     CategoriasModule,
     PublicacionModule,
+    UsuariosModule,
   ],
   controllers: [AppController],
   providers: [AppService],

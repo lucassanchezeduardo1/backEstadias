@@ -1,5 +1,7 @@
 import { Exclude } from "class-transformer";
-import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { Institucione } from "src/instituciones/entities/institucione.entity";
+import { Publicacion } from "src/publicacion/entities/publicacion.entity";
+import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 
 @Entity()
 export class Investigador {
@@ -30,9 +32,9 @@ export class Investigador {
   institucion_id: number;
 
   // Relación Many-to-One con Institución
- // @ManyToOne(() => Institucion, { eager: true })
-  //@JoinColumn({ name: 'institucion_id' })
-  //institucion: Institucion;
+ @ManyToOne(() => Institucione, { eager: true })
+@JoinColumn({ name: 'institucion_id' })
+institucion: Institucione;
 
   @Column({ length: 500,nullable: true })
   google_academico_url: string;
@@ -43,9 +45,9 @@ export class Investigador {
   @Column({ type: 'enum',enum: ['pendiente', 'aprobado', 'rechazado'],default: 'pendiente'})
   estado: 'pendiente' | 'aprobado' | 'rechazado';
 
-  // Relación One-to-Many con Publicaciones (como autor principal)
-  //@OneToMany(() => Publicacion, (publicacion) => publicacion.investigador_principal)
-  //publicaciones: Publicacion[];
+  // Relación One-to-Many con Publicaciones
+  @OneToMany(() => Publicacion, (publicacion) => publicacion.investigador_principal)
+  publicaciones: Publicacion[];
 
   // Relación One-to-Many con Eventos (como organizador)
   //@OneToMany(() => Evento, (evento) => evento.investigador_organizador)

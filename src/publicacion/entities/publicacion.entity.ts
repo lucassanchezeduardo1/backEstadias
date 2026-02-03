@@ -1,6 +1,7 @@
 import { Categoria } from "src/categorias/entities/categoria.entity";
+import { Comentario } from "src/comentarios/entities/comentario.entity";
 import { Investigador } from "src/investigador/entities/investigador.entity";
-import { Column, CreateDateColumn, Entity, Index, JoinColumn, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { Column, CreateDateColumn, Entity, Index, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 
 @Entity()
 @Index(['created_at']) // Índice para ordenar por fecha
@@ -10,12 +11,17 @@ export class Publicacion {
   @Column({ length: 255, nullable: false })
   titulo: string;
 
+  @Column({ type: 'int', nullable: false })
+  investigador_principal_id: number;
+
   // Relación Many-to-One con Investigador
   @ManyToOne(() => Investigador, { eager: true })
   @JoinColumn({ name: 'investigador_principal_id' })
   investigador_principal: Investigador;
 
 
+  @Column({ type: 'int', nullable: false })
+  categoria_id: number;
   // Relación Many-to-One con Categoria
   @ManyToOne(() => Categoria, { eager: true })
   @JoinColumn({ name: 'categoria_id' })
@@ -42,9 +48,9 @@ export class Publicacion {
   @Column({ type: 'int', default: 0, unsigned: true })
   vistas: number;
 
-  // Relación One-to-Many con ComentarioPrivado (descomenta cuando tengas la entidad)
-  // @OneToMany(() => ComentarioPrivado, (comentario) => comentario.publicacion)
-  // comentarios: ComentarioPrivado[];
+    // Relación One-to-Many con ComentarioPrivado
+  @OneToMany(() => Comentario, (comentario) => comentario.publicacion)
+  comentarios: Comentario[];
 
   // Relación One-to-Many con Favorito (descomenta cuando tengas la entidad)
   // @OneToMany(() => Favorito, (favorito) => favorito.publicacion)

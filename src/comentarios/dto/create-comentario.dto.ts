@@ -1,8 +1,8 @@
 import { Type } from "class-transformer";
-import { IsInt, IsNotEmpty,IsString, MaxLength, MinLength } from "class-validator"
+import { IsInt, IsNotEmpty, IsString, MaxLength, MinLength } from "class-validator"
 
 export class CreateComentarioDto {
-    @IsInt({ message: 'El ID de la publicación debe ser un número entero' })
+  @IsInt({ message: 'El ID de la publicación debe ser un número entero' })
   @IsNotEmpty({ message: 'El ID de la publicación es obligatorio' })
   @Type(() => Number)
   publicacion_id: number;

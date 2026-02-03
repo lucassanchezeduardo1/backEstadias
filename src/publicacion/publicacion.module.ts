@@ -8,5 +8,9 @@ import { Publicacion } from './entities/publicacion.entity';
   imports:[TypeOrmModule.forFeature([Publicacion])],
   controllers: [PublicacionController],
   providers: [PublicacionService],
+  exports: [
+    TypeOrmModule, 
+    PublicacionService 
+  ],
 })
 export class PublicacionModule {}

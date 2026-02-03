@@ -11,12 +11,17 @@ export class Publicacion {
   @Column({ length: 255, nullable: false })
   titulo: string;
 
+  @Column({ type: 'int', nullable: false })
+  investigador_principal_id: number;
+
   // Relación Many-to-One con Investigador
   @ManyToOne(() => Investigador, { eager: true })
   @JoinColumn({ name: 'investigador_principal_id' })
   investigador_principal: Investigador;
 
 
+  @Column({ type: 'int', nullable: false })
+  categoria_id: number;
   // Relación Many-to-One con Categoria
   @ManyToOne(() => Categoria, { eager: true })
   @JoinColumn({ name: 'categoria_id' })

@@ -1,34 +1,59 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Request, ParseIntPipe } from '@nestjs/common';
 import { ComentariosService } from './comentarios.service';
 import { CreateComentarioDto } from './dto/create-comentario.dto';
 import { UpdateComentarioDto } from './dto/update-comentario.dto';
 
 @Controller('comentarios')
 export class ComentariosController {
-  constructor(private readonly comentariosService: ComentariosService) {}
+  constructor(private readonly comentariosService: ComentariosService) { }
 
   @Post()
-  create(@Body() createComentarioDto: CreateComentarioDto) {
-    return this.comentariosService.create(createComentarioDto);
+  // @UseGuards(JwtAuthGuard) // Guard de autenticación
+  async create(
+    @Body() createComentarioDto: CreateComentarioDto,
+    @Request() req: any
+  ) {
+    const usuarioId = req.user?.id || 1; // Temporal
+    return await this.comentariosService.create(createComentarioDto, usuarioId);
   }
 
-  @Get()
-  findAll() {
-    return this.comentariosService.findAll();
+  // OBTENER COMENTARIOS DE UNA PUBLICACIÓN (Investigador)
+  @Get('publicacion/:id')
+  // @UseGuards(JwtAuthGuard)
+  async findByPublicacion(
+    @Param('id', ParseIntPipe) publicacionId: number,
+    @Request() req: any
+  ) {
+    const investigadorId = req.user?.id || 1; // Temporal
+    return await this.comentariosService.findByPublicacion(publicacionId, investigadorId);
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.comentariosService.findOne(+id);
+  // OBTENER COMENTARIOS NO LEÍDOS (Investigador)
+  @Get('no-leidos')
+  // @UseGuards(JwtAuthGuard)
+  async findNoLeidos(@Request() req: any) {
+    const investigadorId = req.user?.id || 1; // Temporal
+    return await this.comentariosService.findNoLeidos(investigadorId);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateComentarioDto: UpdateComentarioDto) {
-    return this.comentariosService.update(+id, updateComentarioDto);
+  // MARCAR COMO LEÍDO (Investigador)
+  @Patch(':id/marcar-leido')
+  // @UseGuards(JwtAuthGuard)
+  async marcarComoLeido(
+    @Param('id', ParseIntPipe) id: number,
+    @Request() req: any
+  ) {
+    const investigadorId = req.user?.id || 1; // Temporal
+    return await this.comentariosService.marcarComoLeido(id, investigadorId);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.comentariosService.remove(+id);
+  // @UseGuards(JwtAuthGuard)
+  async remove(
+    @Param('id', ParseIntPipe) id: number,
+    @Request() req: any
+  ) {
+    const investigadorId = req.user?.id || 1; // Temporal
+    return await this.comentariosService.remove(id, investigadorId);
   }
 }

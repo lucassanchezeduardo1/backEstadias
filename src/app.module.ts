@@ -9,6 +9,7 @@ import { CategoriasModule } from './categorias/categorias.module';
 import { PublicacionModule } from './publicacion/publicacion.module';
 import { UsuariosModule } from './usuarios/usuarios.module';
 import { ComentariosModule } from './comentarios/comentarios.module';
+import { EventosModule } from './eventos/eventos.module';
 
 @Module({
   imports: [
@@ -29,6 +30,7 @@ import { ComentariosModule } from './comentarios/comentarios.module';
     PublicacionModule,
     UsuariosModule,
     ComentariosModule,
+    EventosModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -1,4 +1,5 @@
 import { Exclude } from "class-transformer";
+import { Evento } from "src/eventos/entities/evento.entity";
 import { Institucione } from "src/instituciones/entities/institucione.entity";
 import { Publicacion } from "src/publicacion/entities/publicacion.entity";
 import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
@@ -50,8 +51,8 @@ institucion: Institucione;
   publicaciones: Publicacion[];
 
   // Relación One-to-Many con Eventos (como organizador)
-  //@OneToMany(() => Evento, (evento) => evento.investigador_organizador)
-  //eventos: Evento[];
+  @OneToMany(() => Evento, (evento) => evento.investigador_organizador)
+  eventos: Evento[];
 
   @CreateDateColumn({ type: 'timestamp',name: 'created_at'})
   created_at: Date;

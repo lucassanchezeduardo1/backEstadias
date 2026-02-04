@@ -36,7 +36,7 @@ export class Evento {
     investigador_organizador: Investigador;
 
     @Column({ type: 'date' })
-    fecha: string;
+    fecha: Date;
 
     @Column({ type: 'time' })
     hora: string;

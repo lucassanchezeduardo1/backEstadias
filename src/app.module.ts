@@ -9,6 +9,7 @@ import { CategoriasModule } from './categorias/categorias.module';
 import { PublicacionModule } from './publicacion/publicacion.module';
 import { UsuariosModule } from './usuarios/usuarios.module';
 import { ComentariosModule } from './comentarios/comentarios.module';
+import { EventosModule } from './eventos/eventos.module';
 import { FavoritosModule } from './favoritos/favoritos.module';
 
 @Module({
@@ -30,6 +31,7 @@ import { FavoritosModule } from './favoritos/favoritos.module';
     PublicacionModule,
     UsuariosModule,
     ComentariosModule,
+    EventosModule,
     FavoritosModule,
   ],
   controllers: [AppController],

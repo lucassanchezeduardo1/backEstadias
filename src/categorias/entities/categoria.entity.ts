@@ -1,3 +1,4 @@
+import { Evento } from "src/eventos/entities/evento.entity";
 import { Publicacion } from "src/publicacion/entities/publicacion.entity";
 import { Column, CreateDateColumn, Entity, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 
@@ -21,4 +22,8 @@ export class Categoria {
     // Relación One-to-Many con Publicacion
     @OneToMany(() => Publicacion, (publicacion) => publicacion.categoria)
     publicaciones: Publicacion[];
+
+    //relacion con evento
+    @OneToMany(() => Evento, (evento) => evento.categoria)
+    eventos: Evento[];
 }

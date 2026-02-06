@@ -1,5 +1,5 @@
 import { Type } from "class-transformer";
-import { IsEmail, IsInt, IsNotEmpty, IsOptional, IsString,IsUrl,Matches, MaxLength, MinLength } from "class-validator"
+import { IsEmail, IsInt, IsNotEmpty, IsOptional, IsString, IsUrl, Matches, MaxLength, MinLength } from "class-validator"
 
 export class CreateInvestigadorDto {
   @IsString()
@@ -46,8 +46,8 @@ export class CreateInvestigadorDto {
   @MaxLength(50)
   @Matches(
     /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d@$!%*?&]{8,}$/,
-    { 
-      message: 'La contraseña debe contener al menos una mayúscula, una minúscula y un número' 
+    {
+      message: 'La contraseña debe contener al menos una mayúscula, una minúscula y un número'
     }
   )
   password: string;
@@ -67,6 +67,11 @@ export class CreateInvestigadorDto {
   @IsUrl()
   @MaxLength(500)
   google_academico_url?: string;
+
+  @IsOptional()
+  @IsUrl()
+  @Matches(/^https?:\/\/(www\.)?researchgate\.net\/profile\/.+$/)
+  researchgate_url?: string;
 
   @IsString()
   @IsNotEmpty()

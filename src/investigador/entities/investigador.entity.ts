@@ -39,6 +39,8 @@ institucion: Institucione;
 
   @Column({ length: 500,nullable: true })
   google_academico_url: string;
+  @Column({ type: 'varchar', length: 500, nullable: true })
+  researchgate_url: string;
   @Column({ type: 'text',nullable: false })
   descripcion_trayectoria: string;
   @Column({ length: 500,nullable: false })

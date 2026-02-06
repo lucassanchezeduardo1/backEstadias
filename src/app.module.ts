@@ -10,6 +10,7 @@ import { PublicacionModule } from './publicacion/publicacion.module';
 import { UsuariosModule } from './usuarios/usuarios.module';
 import { ComentariosModule } from './comentarios/comentarios.module';
 import { EventosModule } from './eventos/eventos.module';
+import { FavoritosModule } from './favoritos/favoritos.module';
 
 @Module({
   imports: [
@@ -31,6 +32,7 @@ import { EventosModule } from './eventos/eventos.module';
     UsuariosModule,
     ComentariosModule,
     EventosModule,
+    FavoritosModule,
   ],
   controllers: [AppController],
   providers: [AppService],

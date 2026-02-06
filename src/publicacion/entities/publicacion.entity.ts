@@ -1,5 +1,6 @@
 import { Categoria } from "src/categorias/entities/categoria.entity";
 import { Comentario } from "src/comentarios/entities/comentario.entity";
+import { Favorito } from "src/favoritos/entities/favorito.entity";
 import { Investigador } from "src/investigador/entities/investigador.entity";
 import { Column, CreateDateColumn, Entity, Index, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 
@@ -53,8 +54,8 @@ export class Publicacion {
   comentarios: Comentario[];
 
   // Relación One-to-Many con Favorito (descomenta cuando tengas la entidad)
-  // @OneToMany(() => Favorito, (favorito) => favorito.publicacion)
-  // favoritos: Favorito[];
+  @OneToMany(() => Favorito, (favorito) => favorito.publicacion)
+  favoritos: Favorito[];
 
   @CreateDateColumn({ type: 'timestamp', name: 'created_at' })
   created_at: Date;

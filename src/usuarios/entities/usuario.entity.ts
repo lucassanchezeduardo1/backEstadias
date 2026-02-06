@@ -1,5 +1,6 @@
 import { Exclude } from "class-transformer";
 import { Comentario } from "src/comentarios/entities/comentario.entity";
+import { Favorito } from "src/favoritos/entities/favorito.entity";
 import { Column, CreateDateColumn, Entity, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 
 @Entity()
@@ -32,4 +33,8 @@ export class Usuario {
       // Relación One-to-Many con ComentarioPrivado
   @OneToMany(() => Comentario, (comentario) => comentario.usuario)
   comentarios: Comentario[];
+
+  // RELACIÓN CON FAVORITOS
+    @OneToMany(() => Favorito, (favorito) => favorito.usuario)
+    favoritos: Favorito[];
 }

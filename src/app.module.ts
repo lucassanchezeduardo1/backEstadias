@@ -11,9 +11,15 @@ import { UsuariosModule } from './usuarios/usuarios.module';
 import { ComentariosModule } from './comentarios/comentarios.module';
 import { EventosModule } from './eventos/eventos.module';
 import { FavoritosModule } from './favoritos/favoritos.module';
+import { ConfigModule } from '@nestjs/config';
 
 @Module({
   imports: [
+     // CARGA VARIABLES DE ENTORNO (.env)
+    ConfigModule.forRoot({
+      isGlobal: true, // disponible en todo el proyecto
+    }),
+
     TypeOrmModule.forRoot({
       type: 'mysql',
       host: 'localhost',

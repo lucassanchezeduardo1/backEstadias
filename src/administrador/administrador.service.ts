@@ -83,25 +83,39 @@ export class AdministradorService {
     }
   }
 
-  async login(email: string, pass: string) {
-    // 1. Buscar al administrador por email en la BD
-    const admin = await this.administradorRepo.findOne({ where: { email } });
-    if (!admin) {
-      throw new UnauthorizedException('El correo no existe');
+async login(username: string, pass: string) {
+  const admin = await this.administradorRepo.findOne({ where: { nombre: username } });
+
+  if (!admin) {
+    // Si no existe el nombre, intentamos buscar por email por si acaso
+    const adminByEmail = await this.administradorRepo.findOne({ where: { email: username } });
+    if (!adminByEmail) {
+       throw new UnauthorizedException('El usuario o correo no existe');
     }
-    // 2. Comparar la contraseña enviada con el hash de la BD
-    const isMatch = await bcrypt.compare(pass, admin.password);
-    if (!isMatch) {
-      throw new UnauthorizedException('Contraseña incorrecta');
-    }
-    // 3. Retornar éxito (Lo ideal es un JWT, pero por ahora enviamos los datos)
-    return {
-      token: 'TOKEN_PROVISIONAL_JWT', // Aquí generarías un JWT real
-      user: {
-        id: admin.id,
-        nombre: admin.nombre,
-        email: admin.email
-      }
-    };
+    // Si lo encontró por email, lo usamos
+    return this.validatePassword(adminByEmail, pass);
   }
+
+  return this.validatePassword(admin, pass);
+}
+
+// Pequeña función de ayuda para no repetir código
+private async validatePassword(admin: Administrador, pass: string) {
+  const isMatch = await bcrypt.compare(pass, admin.password);
+  
+  if (!isMatch) {
+    throw new UnauthorizedException('Contraseña incorrecta');
+  }
+
+  return {
+    token: 'TOKEN_PROVISIONAL_JWT',
+    user: {
+      id: admin.id,
+      nombre: admin.nombre,
+      email: admin.email,
+      created_at: admin.createdAt, 
+      updated_at: admin.updated_at
+    }
+  };
+}
 }

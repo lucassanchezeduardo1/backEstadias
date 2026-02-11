@@ -35,6 +35,6 @@ export class AdministradorController {
   @Post('login')
 async login(@Body() loginDto: any) {
   // Recibimos email y password del frontend
-  return this.administradorService.login(loginDto.email, loginDto.password);
+  return this.administradorService.login(loginDto.username, loginDto.password);
 }
 }

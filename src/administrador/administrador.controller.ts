@@ -31,4 +31,10 @@ export class AdministradorController {
   remove(@Param('id') id: string) {
     return this.administradorService.removeAdministrador(+id);
   }
+
+  @Post('login')
+async login(@Body() loginDto: any) {
+  // Recibimos email y password del frontend
+  return this.administradorService.login(loginDto.email, loginDto.password);
+}
 }

@@ -20,25 +20,12 @@ export class UpdatePublicacionDto {
 
     @IsString()
     @IsOptional()
-    @MinLength(5)
-    @MaxLength(500)
-    img_portada_url: string;
-
-    @IsString()
-    @IsOptional()
     colaboradores: string;
 
     @IsString()
     @IsOptional()
     @MinLength(500)
     sintesis_investigador: string;
-
-    @IsString()
-    @IsOptional()
-    @MinLength(5)
-    @MaxLength(500)
-    @IsUrl({}, { message: 'La URL del PDF no es válida' })
-    pdf_url: string;
 
     @IsString()
     @IsOptional()

@@ -1,5 +1,6 @@
 import { Type } from "class-transformer";
-import { IsInt, IsNotEmpty, IsOptional, IsString,IsUrl,MaxLength, MinLength } from "class-validator"
+import { IsInt, IsNotEmpty, IsOptional, IsString, IsUrl, MaxLength, MinLength } from "class-validator"
+import { Column } from "typeorm";
 export class CreatePublicacionDto {
     @IsString()
     @IsNotEmpty()
@@ -19,26 +20,13 @@ export class CreatePublicacionDto {
     sub_categoria: string;
 
     @IsString()
-    @IsNotEmpty()
-    @MinLength(5)
-    @MaxLength(500)
-    img_portada_url: string;
-
-    @IsString()
     @IsOptional()
     colaboradores: string;
 
     @IsString()
     @IsNotEmpty()
-    @MinLength(5)//cambiar despues a 500
+    @MinLength(500)//cambiar despues a 500
     sintesis_investigador: string;
-
-    @IsString()
-    @IsNotEmpty()
-    @MinLength(5)
-    @MaxLength(500)
-    @IsUrl({}, { message: 'La URL del PDF no es válida' })
-    pdf_url: string;
 
     @IsString()
     @IsOptional()
@@ -47,5 +35,11 @@ export class CreatePublicacionDto {
     @IsString()
     @IsOptional()
     videos_url: string;
+
+    @IsInt()
+    @IsNotEmpty()
+    @Type(() => Number)
+    investigador_principal_id: number;
+
 
 }

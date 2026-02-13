@@ -83,7 +83,7 @@ export class FavoritosService {
           publicacion: {
             id: fav.publicacion.id,
             titulo: fav.publicacion.titulo,
-            imagen_portada_url: fav.publicacion.img_portada_url,
+            imagen_portada_url: fav.publicacion.img_portada,
             sintesis_investigador: fav.publicacion.sintesis_investigador,
             fecha_publicacion: fav.publicacion.created_at,
             vistas: fav.publicacion.vistas,

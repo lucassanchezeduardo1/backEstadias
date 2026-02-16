@@ -9,11 +9,11 @@ import * as bcrypt from 'bcrypt';
 @Injectable()
 export class InvestigadorService {
   constructor(
-     @InjectRepository(Investigador)
-   private investigadorRepo: Repository<Investigador>){ }
- 
- 
-   async createInvestigador(
+    @InjectRepository(Investigador)
+    private investigadorRepo: Repository<Investigador>) { }
+
+
+  async createInvestigador(
     createInvestigadorDto: CreateInvestigadorDto,
     fotoBuffer: Buffer
   ) {
@@ -75,37 +75,39 @@ export class InvestigadorService {
       throw new InternalServerErrorException('Error al crear el investigador');
     }
   }
- 
-     async findAll() {
-     try {
-       return await this.investigadorRepo.find();
-     } catch (error) {
-       throw new InternalServerErrorException('Error al obtener los investigadores');
-     }
-   }
 
-   async findAllAprobados() {
+  async findAll() {
     try {
-      const investigadores = await this.investigadorRepo.find({
-        where: { estado: 'aprobado' },
-        select: [
-          'id',
-          'nombre',
-          'apellidos',
-          'grado_academico',
-          'cargo_actual',
-          'direccion_oficina',
-          'horario_atencion',
-          'email',
-          'matricula',
-          'institucion_id',
-          'google_academico_url',
-          'descripcion_trayectoria',
-          'areas_investigacion',
-          'created_at',
-          'updated_at'
-        ]
-      });
+      return await this.investigadorRepo.find();
+    } catch (error) {
+      throw new InternalServerErrorException('Error al obtener los investigadores');
+    }
+  }
+
+  async findAllAprobados() {
+    try {
+      const investigadores = await this.investigadorRepo.createQueryBuilder('investigador')
+        .select([
+          'investigador.id',
+          'investigador.nombre',
+          'investigador.apellidos',
+          'investigador.grado_academico',
+          'investigador.cargo_actual',
+          'investigador.direccion_oficina',
+          'investigador.horario_atencion',
+          'investigador.email',
+          'investigador.matricula',
+          'investigador.institucion_id',
+          'investigador.google_academico_url',
+          'investigador.descripcion_trayectoria',
+          'investigador.areas_investigacion',
+          'investigador.estado',
+          'investigador.created_at'
+        ])
+        .where('investigador.estado = :estado', { estado: 'aprobado' })
+        .loadRelationCountAndMap('investigador.num_publicaciones', 'investigador.publicaciones')
+        .loadRelationCountAndMap('investigador.num_eventos', 'investigador.eventos')
+        .getMany();
 
       return investigadores;
 
@@ -115,7 +117,7 @@ export class InvestigadorService {
     }
   }
 
-   async findAllPendientes() {
+  async findAllPendientes() {
     try {
       const investigadores = await this.investigadorRepo.find({
         where: { estado: 'pendiente' },
@@ -138,23 +140,32 @@ export class InvestigadorService {
       throw new InternalServerErrorException('Error al obtener los investigadores pendientes');
     }
   }
- 
-   async findOne(id: number) {
-     try {
-       const investigador = await this.investigadorRepo.findOneBy({ id });
-       if (!investigador) {
-         throw new NotFoundException(`el investigador con el id: ${id} no encontrado`);
-       }
-       return investigador;
-     } catch (error) {
-       if (error instanceof NotFoundException) {
-         throw error;
-       }
-       throw new InternalServerErrorException('Error al buscar el investigador');
-     }
-   }
- 
-   async updateInvestigador(
+
+  async findOne(id: number) {
+    try {
+      const investigador = await this.investigadorRepo.findOne({
+        where: { id },
+        select: [
+          'id', 'nombre', 'apellidos', 'grado_academico', 'cargo_actual',
+          'direccion_oficina', 'horario_atencion', 'email', 'matricula',
+          'institucion_id', 'google_academico_url', 'researchgate_url',
+          'descripcion_trayectoria', 'areas_investigacion', 'estado',
+          'created_at', 'updated_at'
+        ]
+      });
+      if (!investigador) {
+        throw new NotFoundException(`el investigador con el id: ${id} no encontrado`);
+      }
+      return investigador;
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      throw new InternalServerErrorException('Error al buscar el investigador');
+    }
+  }
+
+  async updateInvestigador(
     id: number,
     updateInvestigadorDto: UpdateInvestigadorDto,
     fotoBuffer?: Buffer
@@ -203,7 +214,7 @@ export class InvestigadorService {
     }
   }
 
-   // APROBAR INVESTIGADOR (solo admin)
+  // APROBAR INVESTIGADOR (solo admin)
   async aprobarInvestigador(id: number) {
     try {
       const investigador = await this.investigadorRepo.findOneBy({ id });
@@ -277,25 +288,25 @@ export class InvestigadorService {
       throw new InternalServerErrorException('Error al rechazar el investigador');
     }
   }
- 
-    async removeInvestigador(id: number) {
-     try {
-       const investigador = await this.investigadorRepo.findOneBy({id});
-       if(!investigador){
-         throw new NotFoundException(`investigador con el id: ${id} no encontrado`);
-       }
-       await this.investigadorRepo.remove(investigador);
-       return {message:`investigador con el id: ${id} se ha eliminado`};
- 
-     } catch (error){
-       if (error instanceof NotFoundException) {
-         throw error;
-       }
-       throw new InternalServerErrorException('Error al eliminar el investigador');
-     }
-   }
 
-    // VALIDAR PASSWORD (para login)
+  async removeInvestigador(id: number) {
+    try {
+      const investigador = await this.investigadorRepo.findOneBy({ id });
+      if (!investigador) {
+        throw new NotFoundException(`investigador con el id: ${id} no encontrado`);
+      }
+      await this.investigadorRepo.remove(investigador);
+      return { message: `investigador con el id: ${id} se ha eliminado` };
+
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      throw new InternalServerErrorException('Error al eliminar el investigador');
+    }
+  }
+
+  // VALIDAR PASSWORD (para login)
   async validatePassword(email: string, password: string): Promise<Investigador | null> {
     try {
       // Buscar investigador por email (INCLUYENDO password)
@@ -336,4 +347,16 @@ export class InvestigadorService {
     }
   }
 
+  async getFoto(id: number) {
+    const investigador = await this.investigadorRepo.findOne({
+      where: { id },
+      select: ['foto_perfil']
+    });
+
+    if (!investigador || !investigador.foto_perfil) {
+      throw new NotFoundException('Foto no encontrada');
+    }
+
+    return investigador.foto_perfil;
+  }
 }

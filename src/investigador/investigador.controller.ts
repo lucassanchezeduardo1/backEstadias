@@ -1,12 +1,20 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseInterceptors, UploadedFile, BadRequestException, ParseIntPipe } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseInterceptors, UploadedFile, BadRequestException, ParseIntPipe, Res } from '@nestjs/common';
 import { InvestigadorService } from './investigador.service';
 import { CreateInvestigadorDto } from './dto/create-investigador.dto';
 import { UpdateInvestigadorDto } from './dto/update-investigador.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { Response } from 'express';
 
 @Controller('investigador')
 export class InvestigadorController {
-  constructor(private readonly investigadorService: InvestigadorService) {}
+  constructor(private readonly investigadorService: InvestigadorService) { }
+
+  @Get(':id/foto')
+  async getFoto(@Param('id', ParseIntPipe) id: number, @Res() res: Response) {
+    const buffer = await this.investigadorService.getFoto(id);
+    res.set('Content-Type', 'image/jpeg');
+    res.send(buffer);
+  }
 
   @Post()
   @UseInterceptors(FileInterceptor('foto_perfil'))

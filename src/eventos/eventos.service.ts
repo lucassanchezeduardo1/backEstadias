@@ -14,7 +14,8 @@ export class EventosService {
 
   async create(
     createEventoDto: CreateEventoDto,
-    investigadorId: number
+    investigadorId: number,
+    imagenBuffer: Buffer
   ) {
     try {
       // Validar que la fecha sea futura o hoy
@@ -36,19 +37,18 @@ export class EventosService {
         );
       }
 
-      // ⬇️ CONVERTIR modalidad string a enum
       const modalidadEnum = createEventoDto.modalidad as ModalidadEvento;
 
       // Crear el evento
       const nuevoEvento = this.eventoRepo.create({
         titulo: createEventoDto.titulo,
-        imagen_principal_url: createEventoDto.imagen_principal_url,
+        imagen_principal: imagenBuffer, // ⬅️ Buffer de la imagen
         descripcion: createEventoDto.descripcion,
         tipo_evento: createEventoDto.tipo_evento,
         investigador_organizador_id: investigadorId,
-        fecha: new Date(createEventoDto.fecha), 
+        fecha: new Date(createEventoDto.fecha),
         hora: createEventoDto.hora,
-        modalidad: modalidadEnum, 
+        modalidad: modalidadEnum,
         lugar_enlace: createEventoDto.lugar_enlace,
         categoria_id: createEventoDto.categoria_id,
         ponentes: createEventoDto.ponentes,
@@ -57,9 +57,12 @@ export class EventosService {
 
       const savedEvento = await this.eventoRepo.save(nuevoEvento);
 
+      // Eliminar imagen de la respuesta (es muy pesada)
+      const { imagen_principal, ...eventoSinImagen } = savedEvento;
+
       return {
         message: 'Evento creado exitosamente',
-        evento: savedEvento
+        evento: eventoSinImagen
       };
 
     } catch (error) {
@@ -71,12 +74,61 @@ export class EventosService {
     }
   }
 
+  // ============================================
+  // OBTENER IMAGEN DEL EVENTO
+  // ============================================
+  async getImagen(id: number): Promise<Buffer> {
+    try {
+      const evento = await this.eventoRepo.findOne({
+        where: { id },
+        select: ['imagen_principal']
+      });
+
+      if (!evento || !evento.imagen_principal) {
+        throw new NotFoundException('Imagen del evento no encontrada');
+      }
+
+      return evento.imagen_principal;
+
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      console.error('Error al obtener imagen:', error);
+      throw new InternalServerErrorException('Error al obtener la imagen');
+    }
+  }
+
+  // ============================================
+  // OBTENER TODOS LOS EVENTOS (sin imágenes)
+  // ============================================
   async findAll() {
     try {
-      const eventos = await this.eventoRepo.find({
-        relations: ['investigador_organizador', 'categoria'],
-        order: { fecha: 'ASC', hora: 'ASC' }
-      });
+      const eventos = await this.eventoRepo
+        .createQueryBuilder('evento')
+        .leftJoinAndSelect('evento.investigador_organizador', 'investigador')
+        .leftJoinAndSelect('evento.categoria', 'categoria')
+        .select([
+          'evento.id',
+          'evento.titulo',
+          'evento.descripcion',
+          'evento.tipo_evento',
+          'evento.fecha',
+          'evento.hora',
+          'evento.modalidad',
+          'evento.lugar_enlace',
+          'evento.ponentes',
+          'evento.publico_objetivo',
+          'evento.created_at',
+          'investigador.id',
+          'investigador.nombre',
+          'investigador.apellidos',
+          'categoria.id',
+          'categoria.nombre'
+        ])
+        .orderBy('evento.fecha', 'ASC')
+        .addOrderBy('evento.hora', 'ASC')
+        .getMany();
 
       return eventos;
 
@@ -86,19 +138,39 @@ export class EventosService {
     }
   }
 
-  // OBTENER EVENTOS PRÓXIMOS (a partir de hoy)
+  // ============================================
+  // OBTENER EVENTOS PRÓXIMOS
+  // ============================================
   async findProximos() {
     try {
       const hoy = new Date();
       hoy.setHours(0, 0, 0, 0);
 
-      const eventos = await this.eventoRepo.find({
-        where: {
-          fecha: MoreThanOrEqual(hoy)
-        },
-        relations: ['investigador_organizador', 'categoria'],
-        order: { fecha: 'ASC', hora: 'ASC' }
-      });
+      const eventos = await this.eventoRepo
+        .createQueryBuilder('evento')
+        .leftJoinAndSelect('evento.investigador_organizador', 'investigador')
+        .leftJoinAndSelect('evento.categoria', 'categoria')
+        .select([
+          'evento.id',
+          'evento.titulo',
+          'evento.descripcion',
+          'evento.tipo_evento',
+          'evento.fecha',
+          'evento.hora',
+          'evento.modalidad',
+          'evento.lugar_enlace',
+          'evento.ponentes',
+          'evento.publico_objetivo',
+          'investigador.id',
+          'investigador.nombre',
+          'investigador.apellidos',
+          'categoria.id',
+          'categoria.nombre'
+        ])
+        .where('evento.fecha >= :hoy', { hoy })
+        .orderBy('evento.fecha', 'ASC')
+        .addOrderBy('evento.hora', 'ASC')
+        .getMany();
 
       return {
         total: eventos.length,
@@ -111,19 +183,37 @@ export class EventosService {
     }
   }
 
+  // ============================================
   // OBTENER EVENTOS PASADOS
+  // ============================================
   async findPasados() {
     try {
       const hoy = new Date();
       hoy.setHours(0, 0, 0, 0);
 
-      const eventos = await this.eventoRepo.find({
-        where: {
-          fecha: LessThanOrEqual(hoy)
-        },
-        relations: ['investigador_organizador', 'categoria'],
-        order: { fecha: 'DESC', hora: 'DESC' }
-      });
+      const eventos = await this.eventoRepo
+        .createQueryBuilder('evento')
+        .leftJoinAndSelect('evento.investigador_organizador', 'investigador')
+        .leftJoinAndSelect('evento.categoria', 'categoria')
+        .select([
+          'evento.id',
+          'evento.titulo',
+          'evento.descripcion',
+          'evento.tipo_evento',
+          'evento.fecha',
+          'evento.hora',
+          'evento.modalidad',
+          'evento.lugar_enlace',
+          'investigador.id',
+          'investigador.nombre',
+          'investigador.apellidos',
+          'categoria.id',
+          'categoria.nombre'
+        ])
+        .where('evento.fecha < :hoy', { hoy })
+        .orderBy('evento.fecha', 'DESC')
+        .addOrderBy('evento.hora', 'DESC')
+        .getMany();
 
       return {
         total: eventos.length,
@@ -136,14 +226,32 @@ export class EventosService {
     }
   }
 
-  // OBTENER EVENTOS POR CATEGORÍA
+  // ============================================
+  // OBTENER POR CATEGORÍA
+  // ============================================
   async findByCategoria(categoriaId: number) {
     try {
-      const eventos = await this.eventoRepo.find({
-        where: { categoria_id: categoriaId },
-        relations: ['investigador_organizador', 'categoria'],
-        order: { fecha: 'ASC' }
-      });
+      const eventos = await this.eventoRepo
+        .createQueryBuilder('evento')
+        .leftJoinAndSelect('evento.investigador_organizador', 'investigador')
+        .leftJoinAndSelect('evento.categoria', 'categoria')
+        .select([
+          'evento.id',
+          'evento.titulo',
+          'evento.descripcion',
+          'evento.fecha',
+          'evento.hora',
+          'evento.modalidad',
+          'evento.lugar_enlace',
+          'investigador.id',
+          'investigador.nombre',
+          'investigador.apellidos',
+          'categoria.id',
+          'categoria.nombre'
+        ])
+        .where('evento.categoria_id = :categoriaId', { categoriaId })
+        .orderBy('evento.fecha', 'ASC')
+        .getMany();
 
       if (eventos.length === 0) {
         throw new NotFoundException(`No se encontraron eventos para la categoría ${categoriaId}`);
@@ -160,20 +268,34 @@ export class EventosService {
     }
   }
 
-
-  // OBTENER EVENTOS POR MODALIDAD
- async findByModalidad(modalidad: 'presencial' | 'virtual' | 'hibrida') {
+  // ============================================
+  // OBTENER POR MODALIDAD
+  // ============================================
+  async findByModalidad(modalidad: 'presencial' | 'virtual' | 'hibrida') {
     try {
       const hoy = new Date();
       hoy.setHours(0, 0, 0, 0);
 
-      // Convertir string a enum
       const modalidadEnum = modalidad as ModalidadEvento;
 
       const eventos = await this.eventoRepo
         .createQueryBuilder('evento')
         .leftJoinAndSelect('evento.investigador_organizador', 'investigador')
         .leftJoinAndSelect('evento.categoria', 'categoria')
+        .select([
+          'evento.id',
+          'evento.titulo',
+          'evento.descripcion',
+          'evento.fecha',
+          'evento.hora',
+          'evento.modalidad',
+          'evento.lugar_enlace',
+          'investigador.id',
+          'investigador.nombre',
+          'investigador.apellidos',
+          'categoria.id',
+          'categoria.nombre'
+        ])
         .where('evento.modalidad = :modalidad', { modalidad: modalidadEnum })
         .andWhere('evento.fecha >= :hoy', { hoy })
         .orderBy('evento.fecha', 'ASC')
@@ -191,14 +313,28 @@ export class EventosService {
     }
   }
 
-  // OBTENER EVENTOS DE UN INVESTIGADOR
+  // ============================================
+  // OBTENER POR INVESTIGADOR
+  // ============================================
   async findByInvestigador(investigadorId: number) {
     try {
-      const eventos = await this.eventoRepo.find({
-        where: { investigador_organizador_id: investigadorId },
-        relations: ['categoria'],
-        order: { fecha: 'DESC' }
-      });
+      const eventos = await this.eventoRepo
+        .createQueryBuilder('evento')
+        .leftJoinAndSelect('evento.categoria', 'categoria')
+        .select([
+          'evento.id',
+          'evento.titulo',
+          'evento.descripcion',
+          'evento.fecha',
+          'evento.hora',
+          'evento.modalidad',
+          'evento.lugar_enlace',
+          'categoria.id',
+          'categoria.nombre'
+        ])
+        .where('evento.investigador_organizador_id = :investigadorId', { investigadorId })
+        .orderBy('evento.fecha', 'DESC')
+        .getMany();
 
       return {
         total: eventos.length,
@@ -211,13 +347,36 @@ export class EventosService {
     }
   }
 
-  // OBTENER UN EVENTO POR ID
+  // ============================================
+  // OBTENER UNO POR ID
+  // ============================================
   async findOne(id: number) {
     try {
-      const evento = await this.eventoRepo.findOne({
-        where: { id },
-        relations: ['investigador_organizador', 'categoria']
-      });
+      const evento = await this.eventoRepo
+        .createQueryBuilder('evento')
+        .leftJoinAndSelect('evento.investigador_organizador', 'investigador')
+        .leftJoinAndSelect('evento.categoria', 'categoria')
+        .select([
+          'evento.id',
+          'evento.titulo',
+          'evento.descripcion',
+          'evento.tipo_evento',
+          'evento.fecha',
+          'evento.hora',
+          'evento.modalidad',
+          'evento.lugar_enlace',
+          'evento.ponentes',
+          'evento.publico_objetivo',
+          'evento.created_at',
+          'evento.updated_at',
+          'investigador.id',
+          'investigador.nombre',
+          'investigador.apellidos',
+          'categoria.id',
+          'categoria.nombre'
+        ])
+        .where('evento.id = :id', { id })
+        .getOne();
 
       if (!evento) {
         throw new NotFoundException(`El evento con el id: ${id} no fue encontrado`);
@@ -234,11 +393,14 @@ export class EventosService {
     }
   }
 
+  // ============================================
   // ACTUALIZAR EVENTO
+  // ============================================
   async update(
     id: number,
     updateEventoDto: UpdateEventoDto,
-    investigadorId: number
+    investigadorId: number,
+    imagenBuffer?: Buffer
   ) {
     try {
       const evento = await this.eventoRepo.findOneBy({ id });
@@ -251,7 +413,7 @@ export class EventosService {
         throw new BadRequestException('No tienes permiso para editar este evento');
       }
 
-      // Si se actualiza la fecha, validar que sea futura
+      // Validar fecha si se actualiza
       if (updateEventoDto.fecha) {
         const fechaEvento = new Date(updateEventoDto.fecha);
         const hoy = new Date();
@@ -262,23 +424,31 @@ export class EventosService {
         }
       }
 
-      // ⬇️ Preparar datos para actualizar
-      const datosActualizar: any = { ...updateEventoDto };
-      
-      if (updateEventoDto.fecha) {
-        datosActualizar.fecha = new Date(updateEventoDto.fecha);
-      }
-      
-      if (updateEventoDto.modalidad) {
-        datosActualizar.modalidad = updateEventoDto.modalidad as ModalidadEvento;
+      // Actualizar campos
+      if (updateEventoDto.titulo) evento.titulo = updateEventoDto.titulo;
+      if (updateEventoDto.descripcion) evento.descripcion = updateEventoDto.descripcion;
+      if (updateEventoDto.tipo_evento) evento.tipo_evento = updateEventoDto.tipo_evento;
+      if (updateEventoDto.fecha) evento.fecha = new Date(updateEventoDto.fecha);
+      if (updateEventoDto.hora) evento.hora = updateEventoDto.hora;
+      if (updateEventoDto.modalidad) evento.modalidad = updateEventoDto.modalidad as ModalidadEvento;
+      if (updateEventoDto.lugar_enlace) evento.lugar_enlace = updateEventoDto.lugar_enlace;
+      if (updateEventoDto.categoria_id) evento.categoria_id = updateEventoDto.categoria_id;
+      if (updateEventoDto.ponentes) evento.ponentes = updateEventoDto.ponentes;
+      if (updateEventoDto.publico_objetivo) evento.publico_objetivo = updateEventoDto.publico_objetivo;
+
+      // Actualizar imagen si se proporciona
+      if (imagenBuffer) {
+        evento.imagen_principal = imagenBuffer;
       }
 
-      const eventoActualizado = this.eventoRepo.merge(evento, datosActualizar);
-      const savedEvento = await this.eventoRepo.save(eventoActualizado);
+      const savedEvento = await this.eventoRepo.save(evento);
+
+      // Eliminar imagen de la respuesta
+      const { imagen_principal, ...eventoSinImagen } = savedEvento;
 
       return {
         message: 'Evento actualizado exitosamente',
-        evento: savedEvento
+        evento: eventoSinImagen
       };
 
     } catch (error) {
@@ -290,7 +460,9 @@ export class EventosService {
     }
   }
 
+  // ============================================
   // ELIMINAR EVENTO
+  // ============================================
   async remove(id: number, investigadorId: number) {
     try {
       const evento = await this.eventoRepo.findOneBy({ id });
@@ -299,7 +471,6 @@ export class EventosService {
         throw new NotFoundException(`Evento con el id: ${id} no encontrado`);
       }
 
-      // Verificar que el investigador sea el organizador
       if (evento.investigador_organizador_id !== investigadorId) {
         throw new BadRequestException('No tienes permiso para eliminar este evento');
       }
@@ -319,13 +490,28 @@ export class EventosService {
     }
   }
 
-  // BUSCAR EVENTOS (por título o descripción)
+  // ============================================
+  // BUSCAR EVENTOS
+  // ============================================
   async buscar(termino: string) {
     try {
       const eventos = await this.eventoRepo
         .createQueryBuilder('evento')
         .leftJoinAndSelect('evento.investigador_organizador', 'investigador')
         .leftJoinAndSelect('evento.categoria', 'categoria')
+        .select([
+          'evento.id',
+          'evento.titulo',
+          'evento.descripcion',
+          'evento.fecha',
+          'evento.hora',
+          'evento.modalidad',
+          'investigador.id',
+          'investigador.nombre',
+          'investigador.apellidos',
+          'categoria.id',
+          'categoria.nombre'
+        ])
         .where(
           '(evento.titulo LIKE :termino OR evento.descripcion LIKE :termino OR evento.ponentes LIKE :termino)',
           { termino: `%${termino}%` }
@@ -345,11 +531,13 @@ export class EventosService {
     }
   }
 
-  // OBTENER ESTADÍSTICAS DE EVENTOS
+  // ============================================
+  // ESTADÍSTICAS
+  // ============================================
   async getEstadisticas() {
     try {
       const total = await this.eventoRepo.count();
-      
+
       const hoy = new Date();
       hoy.setHours(0, 0, 0, 0);
 

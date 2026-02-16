@@ -8,11 +8,6 @@ export class UpdateEventoDto {
     @MaxLength(255, { message: 'El título no puede exceder 255 caracteres' })
     titulo: string;
 
-    @IsOptional()
-    @IsUrl({}, { message: 'La URL de la imagen no es válida' })
-    @MaxLength(500, { message: 'La URL de la imagen no puede exceder 500 caracteres' })
-    imagen_principal_url?: string;
-
     @IsString({ message: 'La descripción debe ser un texto válido' })
     @IsOptional()
     @MinLength(50, { message: 'La descripción debe tener al menos 50 caracteres' })

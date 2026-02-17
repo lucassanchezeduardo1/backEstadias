@@ -7,10 +7,10 @@ import { LessThanOrEqual, MoreThanOrEqual, Repository } from 'typeorm';
 
 @Injectable()
 export class EventosService {
-   constructor(
+  constructor(
     @InjectRepository(Evento)
     private eventoRepo: Repository<Evento>
-  ) {}
+  ) { }
 
   async create(
     createEventoDto: CreateEventoDto,
@@ -120,9 +120,11 @@ export class EventosService {
           'evento.ponentes',
           'evento.publico_objetivo',
           'evento.created_at',
+          // 'evento.imagen_principal', // EXCLUDED
           'investigador.id',
           'investigador.nombre',
           'investigador.apellidos',
+          // 'investigador.foto_perfil', // EXCLUDED
           'categoria.id',
           'categoria.nombre'
         ])
@@ -161,9 +163,11 @@ export class EventosService {
           'evento.lugar_enlace',
           'evento.ponentes',
           'evento.publico_objetivo',
+          // 'evento.imagen_principal', // EXCLUDED
           'investigador.id',
           'investigador.nombre',
           'investigador.apellidos',
+          // 'investigador.foto_perfil', // EXCLUDED
           'categoria.id',
           'categoria.nombre'
         ])
@@ -204,9 +208,11 @@ export class EventosService {
           'evento.hora',
           'evento.modalidad',
           'evento.lugar_enlace',
+          // 'evento.imagen_principal', // EXCLUDED
           'investigador.id',
           'investigador.nombre',
           'investigador.apellidos',
+          // 'investigador.foto_perfil', // EXCLUDED
           'categoria.id',
           'categoria.nombre'
         ])
@@ -243,9 +249,11 @@ export class EventosService {
           'evento.hora',
           'evento.modalidad',
           'evento.lugar_enlace',
+          // 'evento.imagen_principal', // EXCLUDED
           'investigador.id',
           'investigador.nombre',
           'investigador.apellidos',
+          // 'investigador.foto_perfil', // EXCLUDED
           'categoria.id',
           'categoria.nombre'
         ])
@@ -290,9 +298,11 @@ export class EventosService {
           'evento.hora',
           'evento.modalidad',
           'evento.lugar_enlace',
+          // 'evento.imagen_principal', // EXCLUDED
           'investigador.id',
           'investigador.nombre',
           'investigador.apellidos',
+          // 'investigador.foto_perfil', // EXCLUDED
           'categoria.id',
           'categoria.nombre'
         ])
@@ -329,6 +339,7 @@ export class EventosService {
           'evento.hora',
           'evento.modalidad',
           'evento.lugar_enlace',
+          // 'evento.imagen_principal', // EXCLUDED
           'categoria.id',
           'categoria.nombre'
         ])
@@ -369,9 +380,11 @@ export class EventosService {
           'evento.publico_objetivo',
           'evento.created_at',
           'evento.updated_at',
+          // 'evento.imagen_principal', // EXCLUDED, use getImagen if needed
           'investigador.id',
           'investigador.nombre',
           'investigador.apellidos',
+          // 'investigador.foto_perfil', // EXCLUDED
           'categoria.id',
           'categoria.nombre'
         ])
@@ -413,28 +426,26 @@ export class EventosService {
         throw new BadRequestException('No tienes permiso para editar este evento');
       }
 
-      // Validar fecha si se actualiza
-      if (updateEventoDto.fecha) {
+      // Actualizar campos (solo si vienen en el DTO)
+      if (updateEventoDto.titulo !== undefined) evento.titulo = updateEventoDto.titulo;
+      if (updateEventoDto.descripcion !== undefined) evento.descripcion = updateEventoDto.descripcion;
+      if (updateEventoDto.tipo_evento !== undefined) evento.tipo_evento = updateEventoDto.tipo_evento;
+      if (updateEventoDto.fecha !== undefined) {
+        evento.fecha = new Date(updateEventoDto.fecha);
+        // Validar fecha solo si se actualiza
         const fechaEvento = new Date(updateEventoDto.fecha);
         const hoy = new Date();
         hoy.setHours(0, 0, 0, 0);
-
         if (fechaEvento < hoy) {
-          throw new BadRequestException('La fecha del evento no puede ser en el pasado');
+          // throw new BadRequestException('La fecha del evento no puede ser en el pasado');
         }
       }
-
-      // Actualizar campos
-      if (updateEventoDto.titulo) evento.titulo = updateEventoDto.titulo;
-      if (updateEventoDto.descripcion) evento.descripcion = updateEventoDto.descripcion;
-      if (updateEventoDto.tipo_evento) evento.tipo_evento = updateEventoDto.tipo_evento;
-      if (updateEventoDto.fecha) evento.fecha = new Date(updateEventoDto.fecha);
-      if (updateEventoDto.hora) evento.hora = updateEventoDto.hora;
-      if (updateEventoDto.modalidad) evento.modalidad = updateEventoDto.modalidad as ModalidadEvento;
-      if (updateEventoDto.lugar_enlace) evento.lugar_enlace = updateEventoDto.lugar_enlace;
-      if (updateEventoDto.categoria_id) evento.categoria_id = updateEventoDto.categoria_id;
-      if (updateEventoDto.ponentes) evento.ponentes = updateEventoDto.ponentes;
-      if (updateEventoDto.publico_objetivo) evento.publico_objetivo = updateEventoDto.publico_objetivo;
+      if (updateEventoDto.hora !== undefined) evento.hora = updateEventoDto.hora;
+      if (updateEventoDto.modalidad !== undefined) evento.modalidad = updateEventoDto.modalidad as ModalidadEvento;
+      if (updateEventoDto.lugar_enlace !== undefined) evento.lugar_enlace = updateEventoDto.lugar_enlace;
+      if (updateEventoDto.categoria_id !== undefined) evento.categoria_id = updateEventoDto.categoria_id;
+      if (updateEventoDto.ponentes !== undefined) evento.ponentes = updateEventoDto.ponentes;
+      if (updateEventoDto.publico_objetivo !== undefined) evento.publico_objetivo = updateEventoDto.publico_objetivo;
 
       // Actualizar imagen si se proporciona
       if (imagenBuffer) {
@@ -506,9 +517,11 @@ export class EventosService {
           'evento.fecha',
           'evento.hora',
           'evento.modalidad',
+          // 'evento.imagen_principal', // EXCLUDED
           'investigador.id',
           'investigador.nombre',
           'investigador.apellidos',
+          // 'investigador.foto_perfil', // EXCLUDED
           'categoria.id',
           'categoria.nombre'
         ])

@@ -18,7 +18,10 @@ export class CreateEventoDto {
     @MaxLength(100, { message: 'El tipo de evento no puede exceder 100 caracteres' })
     tipo_evento: string; // Ej: "Conferencia", "Seminario", "Charla científica"
 
-    //investigador_organizador_id NO va aquí, se obtiene del token JWT
+    @IsInt({ message: 'El ID del investigador debe ser un número entero' })
+    @IsOptional()
+    @Type(() => Number)
+    investigador_organizador_id?: number;
 
     @IsDateString({}, { message: 'La fecha debe ser una fecha válida (YYYY-MM-DD)' })
     @IsNotEmpty({ message: 'La fecha es obligatoria' })

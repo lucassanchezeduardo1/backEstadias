@@ -1,9 +1,9 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete,Req,Res,Request, ParseIntPipe, UseInterceptors, UploadedFile, BadRequestException, UploadedFiles } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Req, Res, Request, ParseIntPipe, UseInterceptors, UploadedFile, BadRequestException, UploadedFiles } from '@nestjs/common';
 import { PublicacionService } from './publicacion.service';
 import { CreatePublicacionDto } from './dto/create-publicacion.dto';
 import { UpdatePublicacionDto } from './dto/update-publicacion.dto';
 import { FileFieldsInterceptor, FileInterceptor } from '@nestjs/platform-express';
-import {memoryStorage } from 'multer';
+import { memoryStorage } from 'multer';
 import { Response } from 'express';
 import * as fs from 'fs';
 import { promises as fsPromises } from 'fs';
@@ -64,9 +64,9 @@ export class PublicacionController {
 
     // Crear carpeta si no existe
     const uploadPath = './uploads/pdfs';
-   if (!fs.existsSync(uploadPath)) {
-  fs.mkdirSync(uploadPath, { recursive: true });
-}
+    if (!fs.existsSync(uploadPath)) {
+      fs.mkdirSync(uploadPath, { recursive: true });
+    }
 
     const pdfName = `${Date.now()}-${pdf.originalname}`;
     const pdfPath = `${uploadPath}/${pdfName}`;
@@ -83,6 +83,11 @@ export class PublicacionController {
   @Get()
   findAll() {
     return this.publicacionService.findAll();
+  }
+
+  @Get('investigador/:investigadorId')
+  findByInvestigador(@Param('investigadorId', ParseIntPipe) investigadorId: number) {
+    return this.publicacionService.findByInvestigador(investigadorId);
   }
 
   @Get(':id')

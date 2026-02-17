@@ -8,13 +8,13 @@ import { Response } from 'express';
 
 @Controller('eventos')
 export class EventosController {
-  constructor(private readonly eventosService: EventosService) {}
+  constructor(private readonly eventosService: EventosService) { }
 
   @Post()
-  @UseInterceptors(FileInterceptor('imagen')) 
+  @UseInterceptors(FileInterceptor('imagen'))
   async create(
     @Body() createEventoDto: CreateEventoDto,
-    @UploadedFile() imagen: Express.Multer.File, 
+    @UploadedFile() imagen: Express.Multer.File,
     @Request() req: any
   ) {
     // Validar que se haya subido una imagen
@@ -34,7 +34,7 @@ export class EventosController {
       throw new BadRequestException('La imagen no puede superar 5MB');
     }
 
-    const investigadorId = req.user?.id || 1;
+    const investigadorId = req.user?.id || createEventoDto.investigador_organizador_id || 1;
 
     return await this.eventosService.create(
       createEventoDto,
@@ -141,7 +141,7 @@ export class EventosController {
       }
     }
 
-    const investigadorId = req.user?.id || 1;
+    const investigadorId = req.user?.id || (updateEventoDto.investigador_organizador_id ? Number(updateEventoDto.investigador_organizador_id) : 1);
 
     return await this.eventosService.update(
       id,

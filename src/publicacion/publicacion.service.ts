@@ -43,15 +43,57 @@ export class PublicacionService {
   }
 
   async findAll() {
-    return this.publicacionRepo.find({
-      relations: ['investigador_principal', 'categoria'],
-      select: {
-        img_portada: false,
-      },
-      order: {
-        created_at: 'DESC',
-      },
-    });
+    return this.publicacionRepo.createQueryBuilder('publicacion')
+      .leftJoinAndSelect('publicacion.investigador_principal', 'investigador')
+      .leftJoinAndSelect('publicacion.categoria', 'categoria')
+      .select([
+        'publicacion.id',
+        'publicacion.titulo',
+        'publicacion.sub_categoria',
+        'publicacion.colaboradores',
+        'publicacion.sintesis_investigador',
+        'publicacion.sintesis_ia',
+        'publicacion.links_referencia',
+        'publicacion.videos_url',
+        'publicacion.pdf_url', // include pdf_url here? usually needed for list? maybe not content but url yes
+        'publicacion.descargas',
+        'publicacion.vistas',
+        'publicacion.created_at',
+        'publicacion.categoria_id',
+        'investigador.id',
+        'investigador.nombre',
+        'investigador.apellidos',
+        // 'investigador.foto_perfil', // EXCLUDED
+        'categoria.id',
+        'categoria.nombre'
+      ])
+      .orderBy('publicacion.created_at', 'DESC')
+      .getMany();
+  }
+
+  async findByInvestigador(investigadorId: number) {
+    return this.publicacionRepo.createQueryBuilder('publicacion')
+      .leftJoinAndSelect('publicacion.categoria', 'categoria') // Assuming we only need category here since we know investigator
+      .select([
+        'publicacion.id',
+        'publicacion.titulo',
+        'publicacion.sub_categoria',
+        'publicacion.colaboradores',
+        'publicacion.sintesis_investigador',
+        'publicacion.sintesis_ia',
+        'publicacion.links_referencia',
+        'publicacion.videos_url',
+        'publicacion.pdf_url',
+        'publicacion.descargas',
+        'publicacion.vistas',
+        'publicacion.created_at',
+        'publicacion.categoria_id',
+        'categoria.id',
+        'categoria.nombre'
+      ])
+      .where('publicacion.investigador_principal_id = :investigadorId', { investigadorId })
+      .orderBy('publicacion.created_at', 'DESC')
+      .getMany();
   }
 
   async findOne(id: number) {

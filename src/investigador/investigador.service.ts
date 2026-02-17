@@ -143,24 +143,45 @@ export class InvestigadorService {
 
   async findOne(id: number) {
     try {
-      const investigador = await this.investigadorRepo.findOne({
-        where: { id },
-        select: [
-          'id', 'nombre', 'apellidos', 'grado_academico', 'cargo_actual',
-          'direccion_oficina', 'horario_atencion', 'email', 'matricula',
-          'institucion_id', 'google_academico_url', 'researchgate_url',
-          'descripcion_trayectoria', 'areas_investigacion', 'estado',
-          'created_at', 'updated_at'
-        ]
-      });
+      const investigador = await this.investigadorRepo.createQueryBuilder('investigador')
+        .leftJoinAndSelect('investigador.institucion', 'institucion')
+        .select([
+          'investigador.id',
+          'investigador.nombre',
+          'investigador.apellidos',
+          'investigador.grado_academico',
+          'investigador.cargo_actual',
+          'investigador.direccion_oficina',
+          'investigador.horario_atencion',
+          'investigador.email',
+          'investigador.matricula',
+          'investigador.institucion_id',
+          'investigador.google_academico_url',
+          'investigador.researchgate_url',
+          'investigador.descripcion_trayectoria',
+          'investigador.areas_investigacion',
+          'investigador.estado',
+          'investigador.created_at',
+          'investigador.updated_at',
+          'institucion.id',
+          'institucion.nombre'
+        ])
+        .where('investigador.id = :id', { id })
+        .loadRelationCountAndMap('investigador.num_publicaciones', 'investigador.publicaciones')
+        .loadRelationCountAndMap('investigador.num_eventos', 'investigador.eventos')
+        .getOne();
+
       if (!investigador) {
-        throw new NotFoundException(`el investigador con el id: ${id} no encontrado`);
+        throw new NotFoundException(`Investigador con el id: ${id} no encontrado`);
       }
+
       return investigador;
+
     } catch (error) {
       if (error instanceof NotFoundException) {
         throw error;
       }
+      console.error('Error al buscar investigador:', error);
       throw new InternalServerErrorException('Error al buscar el investigador');
     }
   }

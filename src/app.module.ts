@@ -12,10 +12,11 @@ import { ComentariosModule } from './comentarios/comentarios.module';
 import { EventosModule } from './eventos/eventos.module';
 import { FavoritosModule } from './favoritos/favoritos.module';
 import { ConfigModule } from '@nestjs/config';
+import { AiModule } from './ai/ai.module';
 
 @Module({
   imports: [
-     // CARGA VARIABLES DE ENTORNO (.env)
+    // CARGA VARIABLES DE ENTORNO (.env)
     ConfigModule.forRoot({
       isGlobal: true, // disponible en todo el proyecto
     }),
@@ -27,8 +28,8 @@ import { ConfigModule } from '@nestjs/config';
       username: 'root',
       password: '',
       database: 'estadias_bd',
-      autoLoadEntities:true,
-      synchronize: true, 
+      autoLoadEntities: true,
+      synchronize: true,
     }),
     AdministradorModule,
     InvestigadorModule,
@@ -39,8 +40,9 @@ import { ConfigModule } from '@nestjs/config';
     ComentariosModule,
     EventosModule,
     FavoritosModule,
+    AiModule,
   ],
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule {}
+export class AppModule { }

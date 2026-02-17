@@ -1,5 +1,5 @@
 import { Type } from "class-transformer";
-import { IsInt,IsOptional, IsString, IsUrl, MaxLength, MinLength } from "class-validator"
+import { IsInt, IsOptional, IsString, IsUrl, MaxLength, MinLength } from "class-validator"
 export class UpdatePublicacionDto {
     @IsString()
     @IsOptional()
@@ -26,6 +26,10 @@ export class UpdatePublicacionDto {
     @IsOptional()
     @MinLength(500)
     sintesis_investigador: string;
+
+    @IsString()
+    @IsOptional()
+    sintesis_ia: string;
 
     @IsString()
     @IsOptional()

@@ -30,6 +30,10 @@ export class CreatePublicacionDto {
 
     @IsString()
     @IsOptional()
+    sintesis_ia: string;
+
+    @IsString()
+    @IsOptional()
     links_referencia: string;
 
     @IsString()

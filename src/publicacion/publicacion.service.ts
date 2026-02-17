@@ -14,7 +14,7 @@ export class PublicacionService {
     private publicacionRepo: Repository<Publicacion>) { }
 
 
-   async create(
+  async create(
     createDto: CreatePublicacionDto,
     imgBuffer: Buffer,
     pdfUrl: string,
@@ -25,6 +25,7 @@ export class PublicacionService {
         sub_categoria: createDto.sub_categoria,
         colaboradores: createDto.colaboradores,
         sintesis_investigador: createDto.sintesis_investigador,
+        sintesis_ia: createDto.sintesis_ia,
         links_referencia: createDto.links_referencia,
         videos_url: createDto.videos_url,
         img_portada: imgBuffer,

@@ -72,7 +72,7 @@ export class UsuariosService {
     try {
       const usuario = await this.usuarioRepo.findOneBy({ id });
       if (!usuario) {
-        throw new NotFoundException(`el usuario con el id: ${id} no encontrada`);
+        throw new NotFoundException(`El usuario con el id: ${id} no encontrado`);
       }
       return usuario;
     } catch (error) {
@@ -140,7 +140,7 @@ export class UsuariosService {
     try {
       const usuario = await this.usuarioRepo.findOneBy({ id });
       if (!usuario) {
-        throw new NotFoundException(`usuario con el id: ${id} no encontrada`);
+        throw new NotFoundException(`Usuario con el id: ${id} no encontrado`);
       }
       await this.usuarioRepo.remove(usuario);
       return { message: `usuario con el id: ${id} se ha eliminado` };

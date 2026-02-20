@@ -12,13 +12,13 @@ export class InstitucionesService {
     private institucionRepo: Repository<Institucione>){ }
   
   
-    async createInstitucion(CreateInstitucioneDto: CreateInstitucioneDto) {
+    async createInstitucion(createInstitucioneDto: CreateInstitucioneDto) {
       try {
-        const newAIntitucion = this.institucionRepo.create(CreateInstitucioneDto);
-        await this.institucionRepo.save(newAIntitucion);
-        return newAIntitucion;
+        const newInstitucion = this.institucionRepo.create(createInstitucioneDto);
+        await this.institucionRepo.save(newInstitucion);
+        return newInstitucion;
       } catch (error) {
-        throw new InternalServerErrorException('Error al crear la institucion');
+        throw new InternalServerErrorException('Error al crear la institución');
       }
     }
   
@@ -45,36 +45,36 @@ export class InstitucionesService {
       }
     }
   
-    async updateInatitucion(id: number, UpdateInstitucioneDto: UpdateInstitucioneDto) {
+    async updateInstitucion(id: number, updateInstitucioneDto: UpdateInstitucioneDto) {
       try {
         const institucion = await this.institucionRepo.findOneBy({ id });
         if (!institucion) {
-          throw new NotFoundException(`Empleado con el id: ${id} no encontrado`);
+          throw new NotFoundException(`Institución con el id: ${id} no encontrada`);
         }
-        const updateInatitucion = this.institucionRepo.merge(institucion, UpdateInstitucioneDto);
-        return await this.institucionRepo.save(updateInatitucion);
+        const updatedInstitucion = this.institucionRepo.merge(institucion, updateInstitucioneDto);
+        return await this.institucionRepo.save(updatedInstitucion);
       } catch (error) {
         if (error instanceof NotFoundException) {
           throw error;
         }
-        throw new InternalServerErrorException('Error al actualizar la institucion');
+        throw new InternalServerErrorException('Error al actualizar la institución');
       }
     }
   
-     async removeIstitucion(id: number) {
+     async removeInstitucion(id: number) {
       try {
         const institucion = await this.institucionRepo.findOneBy({id});
         if(!institucion){
-          throw new NotFoundException(`institucion con el id: ${id} no encontrada`);
+          throw new NotFoundException(`Institución con el id: ${id} no encontrada`);
         }
         await this.institucionRepo.remove(institucion);
-        return {message:`institucion con el id: ${id} se ha eliminado`};
-  
+        return {message:`Institución con el id: ${id} se ha eliminado`};
+
       } catch (error){
         if (error instanceof NotFoundException) {
           throw error;
         }
-        throw new InternalServerErrorException('Error al eliminar la inatitucion');
+        throw new InternalServerErrorException('Error al eliminar la institución');
       }
     }
 }

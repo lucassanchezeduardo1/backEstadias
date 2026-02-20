@@ -5,7 +5,7 @@ import { UpdateInstitucioneDto } from './dto/update-institucione.dto';
 
 @Controller('instituciones')
 export class InstitucionesController {
-  constructor(private readonly institucionesService: InstitucionesService) {}
+  constructor(private readonly institucionesService: InstitucionesService) { }
 
   @Post()
   create(@Body() createInstitucioneDto: CreateInstitucioneDto) {
@@ -24,11 +24,11 @@ export class InstitucionesController {
 
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateInstitucioneDto: UpdateInstitucioneDto) {
-    return this.institucionesService.updateInatitucion(+id, updateInstitucioneDto);
+    return this.institucionesService.updateInstitucion(+id, updateInstitucioneDto);
   }
 
   @Delete(':id')
   remove(@Param('id') id: string) {
-    return this.institucionesService.removeIstitucion(+id);
+    return this.institucionesService.removeInstitucion(+id);
   }
 }

@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Req, Res, Request, ParseIntPipe, UseInterceptors, UploadedFile, BadRequestException, UploadedFiles } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Req, Res, Request, ParseIntPipe, UseInterceptors, UploadedFile, BadRequestException, UploadedFiles, NotFoundException } from '@nestjs/common';
 import { PublicacionService } from './publicacion.service';
 import { CreatePublicacionDto } from './dto/create-publicacion.dto';
 import { UpdatePublicacionDto } from './dto/update-publicacion.dto';
@@ -125,6 +125,22 @@ export class PublicacionController {
     res.send(publicacion.img_portada);
   }
 
+  @Get(':id/pdf')
+  async getPdf(@Param('id') id: number, @Res() res: Response) {
+    const publicacion = await this.publicacionService.findOne(+id);
+
+    if (!publicacion.pdf_url) {
+      throw new NotFoundException('Archivo PDF no encontrado');
+    }
+
+    const filePath = `.${publicacion.pdf_url}`;
+
+    if (!fs.existsSync(filePath)) {
+      throw new NotFoundException('El archivo físico no existe en el servidor');
+    }
+
+    res.sendFile(filePath, { root: '.' });
+  }
 
   @Patch(':id')
   update(

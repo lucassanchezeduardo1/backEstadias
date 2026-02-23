@@ -5,6 +5,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Favorito } from './entities/favorito.entity';
 import { Repository } from 'typeorm';
 import { Publicacion } from 'src/publicacion/entities/publicacion.entity';
+import { UsuariosService } from 'src/usuarios/usuarios.service';
 
 @Injectable()
 export class FavoritosService {
@@ -13,10 +14,22 @@ export class FavoritosService {
     private favoritoRepo: Repository<Favorito>,
 
     @InjectRepository(Publicacion)
-    private publicacionRepo: Repository<Publicacion>
+    private publicacionRepo: Repository<Publicacion>,
+
+    private usuariosService: UsuariosService
   ) { }
 
+  private async getValidUsuarioId(usuarioId: number): Promise<number> {
+    // Si no viene un ID válido, intentamos recuperar el primer usuario como fallback
+    if (!usuarioId || usuarioId <= 0) {
+      const firstUser = await this.usuariosService.getFirstUser();
+      return firstUser ? firstUser.id : 1;
+    }
+    return usuarioId;
+  }
+
   async create(createFavoritoDto: CreateFavoritoDto, usuarioId: number) {
+    usuarioId = await this.getValidUsuarioId(usuarioId);
     try {
       // Verificar que la publicación existe
       const publicacion = await this.publicacionRepo.findOne({
@@ -68,6 +81,7 @@ export class FavoritosService {
 
 
   async findAll(usuarioId: number) {
+    usuarioId = await this.getValidUsuarioId(usuarioId);
     try {
       const favoritos = await this.favoritoRepo.find({
         where: { usuario_id: usuarioId },
@@ -110,6 +124,7 @@ export class FavoritosService {
 
   // VERIFICAR SI UNA PUBLICACIÓN ES FAVORITA
   async esFavorito(publicacionId: number, usuarioId: number) {
+    usuarioId = await this.getValidUsuarioId(usuarioId);
     try {
       const favorito = await this.favoritoRepo.findOne({
         where: {
@@ -130,6 +145,7 @@ export class FavoritosService {
   }
 
   async findOne(id: number, usuarioId: number) {
+    usuarioId = await this.getValidUsuarioId(usuarioId);
     try {
       const favorito = await this.favoritoRepo.findOne({
         where: { id, usuario_id: usuarioId },
@@ -153,6 +169,7 @@ export class FavoritosService {
 
   // ELIMINAR DE FAVORITOS (por ID de favorito)
   async remove(id: number, usuarioId: number) {
+    usuarioId = await this.getValidUsuarioId(usuarioId);
     try {
       const favorito = await this.favoritoRepo.findOne({
         where: { id, usuario_id: usuarioId }
@@ -179,6 +196,7 @@ export class FavoritosService {
 
   // ELIMINAR DE FAVORITOS (por ID de publicación)
   async removeByPublicacion(publicacionId: number, usuarioId: number) {
+    usuarioId = await this.getValidUsuarioId(usuarioId);
     try {
       const favorito = await this.favoritoRepo.findOne({
         where: {
@@ -208,6 +226,7 @@ export class FavoritosService {
 
   // TOGGLE FAVORITO (agregar o quitar)
   async toggle(publicacionId: number, usuarioId: number) {
+    usuarioId = await this.getValidUsuarioId(usuarioId);
     try {
       const existe = await this.favoritoRepo.findOne({
         where: {
@@ -260,6 +279,7 @@ export class FavoritosService {
 
   // OBTENER ESTADÍSTICAS DE FAVORITOS
   async getEstadisticas(usuarioId: number) {
+    usuarioId = await this.getValidUsuarioId(usuarioId);
     try {
       const total = await this.favoritoRepo.count({
         where: { usuario_id: usuarioId }

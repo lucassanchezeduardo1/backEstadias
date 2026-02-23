@@ -185,4 +185,8 @@ export class UsuariosService {
 
     return usuario.foto_perfil;
   }
+
+  async getFirstUser() {
+    return await this.usuarioRepo.findOne({ where: {} });
+  }
 }

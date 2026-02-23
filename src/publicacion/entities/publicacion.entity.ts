@@ -32,10 +32,12 @@ export class Publicacion {
   sub_categoria: string;
   @Column({ type: 'mediumblob', nullable: false })
   img_portada: Buffer;
+  @Column({ type: 'mediumblob', nullable: true })
+  img_contenido: Buffer | null;
   @Column({ length: 500, nullable: true })
   colaboradores: string;
   @Column({ type: 'text', nullable: false })
-  sintesis_investigador: string;
+  descripcion_investigacion: string;
   @Column({ type: 'text', nullable: true })
   sintesis_ia: string | null;
   @Column({ length: 500, nullable: false })
@@ -49,7 +51,7 @@ export class Publicacion {
   @Column({ type: 'int', default: 0, unsigned: true })
   vistas: number;
 
-    // Relación One-to-Many con ComentarioPrivado
+  // Relación One-to-Many con ComentarioPrivado
   @OneToMany(() => Comentario, (comentario) => comentario.publicacion)
   comentarios: Comentario[];
 

@@ -16,7 +16,8 @@ export class PublicacionService {
 
   async create(
     createDto: CreatePublicacionDto,
-    imgBuffer: Buffer,
+    imgPortadaBuffer: Buffer,
+    imgContenidoBuffer: Buffer | null,
     pdfUrl: string,
   ) {
     try {
@@ -24,11 +25,12 @@ export class PublicacionService {
         titulo: createDto.titulo,
         sub_categoria: createDto.sub_categoria,
         colaboradores: createDto.colaboradores,
-        sintesis_investigador: createDto.sintesis_investigador,
+        descripcion_investigacion: createDto.descripcion_investigacion,
         sintesis_ia: createDto.sintesis_ia,
         links_referencia: createDto.links_referencia,
         videos_url: createDto.videos_url,
-        img_portada: imgBuffer,
+        img_portada: imgPortadaBuffer,
+        img_contenido: imgContenidoBuffer,
         pdf_url: pdfUrl,
         investigador_principal_id: createDto.investigador_principal_id,
         categoria_id: createDto.categoria_id,
@@ -51,11 +53,11 @@ export class PublicacionService {
         'publicacion.titulo',
         'publicacion.sub_categoria',
         'publicacion.colaboradores',
-        'publicacion.sintesis_investigador',
+        'publicacion.descripcion_investigacion',
         'publicacion.sintesis_ia',
         'publicacion.links_referencia',
         'publicacion.videos_url',
-        'publicacion.pdf_url', // include pdf_url here? usually needed for list? maybe not content but url yes
+        'publicacion.pdf_url',
         'publicacion.descargas',
         'publicacion.vistas',
         'publicacion.created_at',
@@ -79,7 +81,7 @@ export class PublicacionService {
         'publicacion.titulo',
         'publicacion.sub_categoria',
         'publicacion.colaboradores',
-        'publicacion.sintesis_investigador',
+        'publicacion.descripcion_investigacion',
         'publicacion.sintesis_ia',
         'publicacion.links_referencia',
         'publicacion.videos_url',
@@ -102,6 +104,7 @@ export class PublicacionService {
       relations: ['investigador_principal', 'categoria'],
       select: {
         img_portada: false,
+        img_contenido: false,
       },
     });
 

@@ -81,7 +81,7 @@ export class EventosService {
     try {
       const evento = await this.eventoRepo.findOne({
         where: { id },
-        select: ['imagen_principal']
+        select: ['id', 'imagen_principal']
       });
 
       if (!evento || !evento.imagen_principal) {

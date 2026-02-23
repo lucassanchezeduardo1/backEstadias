@@ -371,7 +371,7 @@ export class InvestigadorService {
   async getFoto(id: number) {
     const investigador = await this.investigadorRepo.findOne({
       where: { id },
-      select: ['foto_perfil']
+      select: ['id', 'foto_perfil']
     });
 
     if (!investigador || !investigador.foto_perfil) {

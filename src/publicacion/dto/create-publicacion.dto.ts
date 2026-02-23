@@ -25,8 +25,8 @@ export class CreatePublicacionDto {
 
     @IsString()
     @IsNotEmpty()
-    @MinLength(500)//cambiar despues a 500
-    sintesis_investigador: string;
+    @MinLength(200, { message: 'La descripción de la investigación debe tener al menos 30 palabras (aprox. 200 caracteres)' })
+    descripcion_investigacion: string;
 
     @IsString()
     @IsOptional()

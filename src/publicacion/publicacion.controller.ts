@@ -19,6 +19,7 @@ export class PublicacionController {
       [
         { name: 'pdf', maxCount: 1 },
         { name: 'img_portada', maxCount: 1 },
+        { name: 'img_contenido', maxCount: 1 },
       ],
       {
         storage: memoryStorage(),
@@ -31,7 +32,7 @@ export class PublicacionController {
           }
 
           if (
-            file.fieldname === 'img_portada' &&
+            (file.fieldname === 'img_portada' || file.fieldname === 'img_contenido') &&
             !file.mimetype.startsWith('image/')
           ) {
             return cb(
@@ -51,6 +52,7 @@ export class PublicacionController {
     files: {
       pdf?: Express.Multer.File[];
       img_portada?: Express.Multer.File[];
+      img_contenido?: Express.Multer.File[];
     },
   ) {
     if (!files?.pdf || !files?.img_portada) {
@@ -60,7 +62,8 @@ export class PublicacionController {
     }
 
     const pdf = files.pdf[0];
-    const imagen = files.img_portada[0];
+    const imagenPortada = files.img_portada[0];
+    const imagenContenido = files.img_contenido ? files.img_contenido[0] : null;
 
     // Crear carpeta si no existe
     const uploadPath = './uploads/pdfs';
@@ -75,7 +78,8 @@ export class PublicacionController {
 
     return this.publicacionService.create(
       createDto,
-      imagen.buffer,
+      imagenPortada.buffer,
+      imagenContenido ? imagenContenido.buffer : null,
       `/uploads/pdfs/${pdfName}`,
     );
   }
@@ -123,6 +127,22 @@ export class PublicacionController {
     });
 
     res.send(publicacion.img_portada);
+  }
+
+  @Get(':id/imagen-contenido')
+  async getImagenContenido(@Param('id') id: number, @Res() res: Response) {
+    const publicacion =
+      await this.publicacionService.findOneWithImage(+id);
+
+    if (!publicacion.img_contenido) {
+      throw new NotFoundException('Esta publicación no tiene imagen de contenido');
+    }
+
+    res.set({
+      'Content-Type': 'image/jpeg',
+    });
+
+    res.send(publicacion.img_contenido);
   }
 
   @Get(':id/pdf')

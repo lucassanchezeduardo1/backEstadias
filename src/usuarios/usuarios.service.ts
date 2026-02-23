@@ -176,7 +176,7 @@ export class UsuariosService {
   async getFoto(id: number) {
     const usuario = await this.usuarioRepo.findOne({
       where: { id },
-      select: ['foto_perfil']
+      select: ['id', 'foto_perfil']
     });
 
     if (!usuario || !usuario.foto_perfil) {

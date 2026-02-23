@@ -11,60 +11,60 @@ export class FavoritosService {
   constructor(
     @InjectRepository(Favorito)
     private favoritoRepo: Repository<Favorito>,
-    
+
     @InjectRepository(Publicacion)
     private publicacionRepo: Repository<Publicacion>
-  ) {}
+  ) { }
 
   async create(createFavoritoDto: CreateFavoritoDto, usuarioId: number) {
-  try {
-    // Verificar que la publicación existe
-    const publicacion = await this.publicacionRepo.findOne({
-      where: { id: createFavoritoDto.publicacion_id }
-    });
+    try {
+      // Verificar que la publicación existe
+      const publicacion = await this.publicacionRepo.findOne({
+        where: { id: createFavoritoDto.publicacion_id }
+      });
 
-    if (!publicacion) {
-      throw new NotFoundException('Publicación no encontrada');
-    }
+      if (!publicacion) {
+        throw new NotFoundException('Publicación no encontrada');
+      }
 
-    // Verificar que no esté ya en favoritos
-    const existe = await this.favoritoRepo.findOne({
-      where: {
+      // Verificar que no esté ya en favoritos
+      const existe = await this.favoritoRepo.findOne({
+        where: {
+          usuario_id: usuarioId,
+          publicacion_id: createFavoritoDto.publicacion_id
+        }
+      });
+
+      if (existe) {
+        throw new ConflictException('Esta publicación ya está en tus favoritos');
+      }
+
+      // Crear favorito
+      const nuevoFavorito = this.favoritoRepo.create({
         usuario_id: usuarioId,
         publicacion_id: createFavoritoDto.publicacion_id
+      });
+
+      const savedFavorito = await this.favoritoRepo.save(nuevoFavorito);
+
+      return {
+        message: 'Publicación agregada a favoritos',
+        favorito: savedFavorito
+      };
+
+    } catch (error) {
+      if (
+        error instanceof NotFoundException ||
+        error instanceof ConflictException ||
+        error instanceof BadRequestException
+      ) {
+        throw error;
       }
-    });
 
-    if (existe) {
-      throw new ConflictException('Esta publicación ya está en tus favoritos');
+      console.error('Error al agregar a favoritos:', error);
+      throw new InternalServerErrorException('Error al agregar a favoritos');
     }
-
-    // Crear favorito
-    const nuevoFavorito = this.favoritoRepo.create({
-      usuario_id: usuarioId,
-      publicacion_id: createFavoritoDto.publicacion_id
-    });
-
-    const savedFavorito = await this.favoritoRepo.save(nuevoFavorito);
-
-    return {
-      message: 'Publicación agregada a favoritos',
-      favorito: savedFavorito
-    };
-
-  } catch (error) {
-    if (
-      error instanceof NotFoundException ||
-      error instanceof ConflictException ||
-      error instanceof BadRequestException
-    ) {
-      throw error;
-    }
-
-    console.error('Error al agregar a favoritos:', error);
-    throw new InternalServerErrorException('Error al agregar a favoritos');
   }
-}
 
 
   async findAll(usuarioId: number) {
@@ -84,7 +84,7 @@ export class FavoritosService {
             id: fav.publicacion.id,
             titulo: fav.publicacion.titulo,
             imagen_portada_url: fav.publicacion.img_portada,
-            sintesis_investigador: fav.publicacion.sintesis_investigador,
+            descripcion_investigacion: fav.publicacion.descripcion_investigacion,
             fecha_publicacion: fav.publicacion.created_at,
             vistas: fav.publicacion.vistas,
             descargas: fav.publicacion.descargas,
@@ -248,7 +248,7 @@ export class FavoritosService {
 
     } catch (error) {
       if (
-        error instanceof NotFoundException || 
+        error instanceof NotFoundException ||
         error instanceof BadRequestException
       ) {
         throw error;

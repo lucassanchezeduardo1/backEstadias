@@ -24,8 +24,8 @@ export class UpdatePublicacionDto {
 
     @IsString()
     @IsOptional()
-    @MinLength(500)
-    sintesis_investigador: string;
+    @MinLength(200)
+    descripcion_investigacion: string;
 
     @IsString()
     @IsOptional()

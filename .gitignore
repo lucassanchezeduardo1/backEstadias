@@ -57,3 +57,6 @@ report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
 
 # Uploaded files (PDFs, images, etc.)
 /uploads
+
+# Google Drive Key
+google-drive-key.json

@@ -13,6 +13,7 @@ import { EventosModule } from './eventos/eventos.module';
 import { FavoritosModule } from './favoritos/favoritos.module';
 import { ConfigModule } from '@nestjs/config';
 import { AiModule } from './ai/ai.module';
+import { GoogleDriveModule } from './google-drive/google-drive.module';
 
 @Module({
   imports: [
@@ -41,6 +42,7 @@ import { AiModule } from './ai/ai.module';
     EventosModule,
     FavoritosModule,
     AiModule,
+    GoogleDriveModule,
   ],
   controllers: [AppController],
   providers: [AppService],

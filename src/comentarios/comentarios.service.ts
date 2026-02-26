@@ -11,10 +11,10 @@ export class ComentariosService {
   constructor(
     @InjectRepository(Comentario)
     private comentarioRepo: Repository<Comentario>,
-    
+
     @InjectRepository(Publicacion)
     private publicacionRepo: Repository<Publicacion>
-  ) {}
+  ) { }
 
   async create(
     createComentarioDto: CreateComentarioDto,

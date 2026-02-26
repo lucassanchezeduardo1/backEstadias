@@ -7,11 +7,16 @@ import { Repository } from 'typeorm';
 import * as fs from 'fs';
 
 
+import { GoogleDriveService } from '../google-drive/google-drive.service';
+
+
 @Injectable()
 export class PublicacionService {
   constructor(
     @InjectRepository(Publicacion)
-    private publicacionRepo: Repository<Publicacion>) { }
+    private publicacionRepo: Repository<Publicacion>,
+    private googleDriveService: GoogleDriveService,
+  ) { }
 
 
   async create(
@@ -190,9 +195,14 @@ export class PublicacionService {
     }
 
     if (publicacion.pdf_url) {
-      const path = `.${publicacion.pdf_url}`;
-      if (fs.existsSync(path)) {
-        fs.unlinkSync(path);
+      if (publicacion.pdf_url.startsWith('googleDrive://')) {
+        const fileId = publicacion.pdf_url.replace('googleDrive://', '');
+        await this.googleDriveService.deleteFile(fileId);
+      } else {
+        const path = `.${publicacion.pdf_url}`;
+        if (fs.existsSync(path)) {
+          fs.unlinkSync(path);
+        }
       }
     }
 

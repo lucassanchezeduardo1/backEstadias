@@ -9,9 +9,15 @@ import * as fs from 'fs';
 import { promises as fsPromises } from 'fs';
 
 
+import { GoogleDriveService } from '../google-drive/google-drive.service';
+
+
 @Controller('publicacion')
 export class PublicacionController {
-  constructor(private readonly publicacionService: PublicacionService) { }
+  constructor(
+    private readonly publicacionService: PublicacionService,
+    private readonly googleDriveService: GoogleDriveService,
+  ) { }
 
   @Post()
   @UseInterceptors(
@@ -65,22 +71,19 @@ export class PublicacionController {
     const imagenPortada = files.img_portada[0];
     const imagenContenido = files.img_contenido ? files.img_contenido[0] : null;
 
-    // Crear carpeta si no existe
-    const uploadPath = './uploads/pdfs';
-    if (!fs.existsSync(uploadPath)) {
-      fs.mkdirSync(uploadPath, { recursive: true });
-    }
-
+    // Subir a Google Drive
     const pdfName = `${Date.now()}-${pdf.originalname}`;
-    const pdfPath = `${uploadPath}/${pdfName}`;
-
-    await fsPromises.writeFile(pdfPath, pdf.buffer);
+    const googleDriveId = await this.googleDriveService.uploadFile(
+      pdf.buffer,
+      pdfName,
+      pdf.mimetype,
+    );
 
     return this.publicacionService.create(
       createDto,
       imagenPortada.buffer,
       imagenContenido ? imagenContenido.buffer : null,
-      `/uploads/pdfs/${pdfName}`,
+      `googleDrive://${googleDriveId}`,
     );
   }
 
@@ -153,6 +156,20 @@ export class PublicacionController {
       throw new NotFoundException('Archivo PDF no encontrado');
     }
 
+    // Verificar si es de Google Drive
+    if (publicacion.pdf_url.startsWith('googleDrive://')) {
+      const fileId = publicacion.pdf_url.replace('googleDrive://', '');
+      const stream = await this.googleDriveService.getFileStream(fileId);
+
+      res.set({
+        'Content-Type': 'application/pdf',
+        'Content-Disposition': `inline; filename="publicacion-${id}.pdf"`,
+      });
+
+      return stream.pipe(res);
+    }
+
+    // Lógica antigua para archivos locales (retrocompatibilidad)
     const filePath = `.${publicacion.pdf_url}`;
 
     if (!fs.existsSync(filePath)) {

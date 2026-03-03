@@ -68,6 +68,11 @@ export class UpdateInvestigadorDto {
   @MaxLength(500)
   google_academico_url?: string;
 
+  @IsOptional()
+  @IsUrl()
+  @Matches(/^https?:\/\/(www\.)?researchgate\.net\/profile\/.+$/)
+  researchgate_url?: string;
+
   @IsString()
   @IsOptional()
   @MinLength(50)

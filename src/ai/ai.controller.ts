@@ -10,4 +10,10 @@ export class AiController {
         const sintesis = await this.aiService.generarSintesis(texto);
         return { sintesis };
     }
+
+    @Post('examen')
+    async generarExamen(@Body('contenido') contenido: string, @Body('titulo') titulo: string) {
+        const preguntas = await this.aiService.generarExamen(contenido, titulo);
+        return { preguntas };
+    }
 }

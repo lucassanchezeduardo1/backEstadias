@@ -158,7 +158,7 @@ export class PublicacionController {
 
     // Verificar si es de Google Drive
     if (publicacion.pdf_url.startsWith('googleDrive://')) {
-      const fileId = publicacion.pdf_url.replace('googleDrive://', '');
+      const fileId = publicacion.pdf_url.replace('googleDrive://', '').trim();
       const stream = await this.googleDriveService.getFileStream(fileId);
 
       res.set({

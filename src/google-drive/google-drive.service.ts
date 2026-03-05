@@ -57,12 +57,16 @@ export class GoogleDriveService {
   async getFileStream(fileId: string) {
     try {
       const response = await this.drive.files.get(
-        { fileId, alt: 'media', supportsAllDrives: true },
+        { fileId, alt: 'media', supportsAllDrives: true, acknowledgeAbuse: true },
         { responseType: 'stream' }
       );
       return response.data;
     } catch (error) {
-      console.error('Error getting file from Google Drive:', error);
+      console.error('Error getting file from Google Drive:', error.message || error);
+      if (error.response) {
+        console.error('Data:', error.response.data);
+        console.error('Status:', error.response.status);
+      }
       throw new InternalServerErrorException('Error al obtener archivo de Google Drive');
     }
   }

@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Req, Res, Request, ParseIntPipe, UseInterceptors, UploadedFile, BadRequestException, UploadedFiles, NotFoundException } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Req, Res, Request, ParseIntPipe, UseInterceptors, UploadedFile, BadRequestException, UploadedFiles, NotFoundException, Query, UnauthorizedException } from '@nestjs/common';
 import { PublicacionService } from './publicacion.service';
 import { CreatePublicacionDto } from './dto/create-publicacion.dto';
 import { UpdatePublicacionDto } from './dto/update-publicacion.dto';
@@ -149,7 +149,14 @@ export class PublicacionController {
   }
 
   @Get(':id/pdf')
-  async getPdf(@Param('id') id: number, @Res() res: Response) {
+  async getPdf(
+    @Param('id') id: number,
+    @Res() res: Response,
+    @Query('codigo') codigo: string,
+  ) {
+    if (codigo !== 'Ab3j4') {
+      throw new UnauthorizedException('Código de acceso incorrecto');
+    }
     const publicacion = await this.publicacionService.findOne(+id);
 
     if (!publicacion.pdf_url) {

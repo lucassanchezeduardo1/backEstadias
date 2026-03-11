@@ -80,18 +80,23 @@ export class FavoritosService {
   }
 
 
-  async findAll(usuarioId: number) {
+  async findAll(usuarioId: number, page: number = 1, limit: number = 10) {
     usuarioId = await this.getValidUsuarioId(usuarioId);
     try {
-      const favoritos = await this.favoritoRepo.find({
+      const skip = (page - 1) * limit;
+      const [favoritos, total] = await this.favoritoRepo.findAndCount({
         where: { usuario_id: usuarioId },
         relations: ['publicacion', 'publicacion.investigador_principal', 'publicacion.categoria'],
-        order: { created_at: 'DESC' }
+        order: { created_at: 'DESC' },
+        skip,
+        take: limit
       });
 
       return {
-        total: favoritos.length,
-        favoritos: favoritos.map(fav => ({
+        total,
+        page,
+        lastPage: Math.ceil(total / limit),
+        items: favoritos.map(fav => ({
           id: fav.id,
           created_at: fav.created_at,
           publicacion: {

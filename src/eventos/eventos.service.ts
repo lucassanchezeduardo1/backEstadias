@@ -102,9 +102,10 @@ export class EventosService {
   // ============================================
   // OBTENER TODOS LOS EVENTOS (sin imágenes)
   // ============================================
-  async findAll() {
+  async findAll(page: number = 1, limit: number = 10) {
     try {
-      const eventos = await this.eventoRepo
+      const skip = (page - 1) * limit;
+      const [items, total] = await this.eventoRepo
         .createQueryBuilder('evento')
         .leftJoinAndSelect('evento.investigador_organizador', 'investigador')
         .leftJoinAndSelect('evento.categoria', 'categoria')
@@ -130,9 +131,16 @@ export class EventosService {
         ])
         .orderBy('evento.fecha', 'ASC')
         .addOrderBy('evento.hora', 'ASC')
-        .getMany();
+        .skip(skip)
+        .take(limit)
+        .getManyAndCount();
 
-      return eventos;
+      return {
+        items,
+        total,
+        page,
+        lastPage: Math.ceil(total / limit)
+      };
 
     } catch (error) {
       console.error('Error al obtener eventos:', error);
@@ -143,12 +151,13 @@ export class EventosService {
   // ============================================
   // OBTENER EVENTOS PRÓXIMOS
   // ============================================
-  async findProximos() {
+  async findProximos(page: number = 1, limit: number = 10) {
     try {
+      const skip = (page - 1) * limit;
       const hoy = new Date();
       hoy.setHours(0, 0, 0, 0);
 
-      const eventos = await this.eventoRepo
+      const [items, total] = await this.eventoRepo
         .createQueryBuilder('evento')
         .leftJoinAndSelect('evento.investigador_organizador', 'investigador')
         .leftJoinAndSelect('evento.categoria', 'categoria')
@@ -174,11 +183,15 @@ export class EventosService {
         .where('evento.fecha >= :hoy', { hoy })
         .orderBy('evento.fecha', 'ASC')
         .addOrderBy('evento.hora', 'ASC')
-        .getMany();
+        .skip(skip)
+        .take(limit)
+        .getManyAndCount();
 
       return {
-        total: eventos.length,
-        eventos
+        items,
+        total,
+        page,
+        lastPage: Math.ceil(total / limit)
       };
 
     } catch (error) {
@@ -190,12 +203,13 @@ export class EventosService {
   // ============================================
   // OBTENER EVENTOS PASADOS
   // ============================================
-  async findPasados() {
+  async findPasados(page: number = 1, limit: number = 10) {
     try {
+      const skip = (page - 1) * limit;
       const hoy = new Date();
       hoy.setHours(0, 0, 0, 0);
 
-      const eventos = await this.eventoRepo
+      const [items, total] = await this.eventoRepo
         .createQueryBuilder('evento')
         .leftJoinAndSelect('evento.investigador_organizador', 'investigador')
         .leftJoinAndSelect('evento.categoria', 'categoria')
@@ -219,11 +233,15 @@ export class EventosService {
         .where('evento.fecha < :hoy', { hoy })
         .orderBy('evento.fecha', 'DESC')
         .addOrderBy('evento.hora', 'DESC')
-        .getMany();
+        .skip(skip)
+        .take(limit)
+        .getManyAndCount();
 
       return {
-        total: eventos.length,
-        eventos
+        items,
+        total,
+        page,
+        lastPage: Math.ceil(total / limit)
       };
 
     } catch (error) {
@@ -235,9 +253,10 @@ export class EventosService {
   // ============================================
   // OBTENER POR CATEGORÍA
   // ============================================
-  async findByCategoria(categoriaId: number) {
+  async findByCategoria(categoriaId: number, page: number = 1, limit: number = 10) {
     try {
-      const eventos = await this.eventoRepo
+      const skip = (page - 1) * limit;
+      const [items, total] = await this.eventoRepo
         .createQueryBuilder('evento')
         .leftJoinAndSelect('evento.investigador_organizador', 'investigador')
         .leftJoinAndSelect('evento.categoria', 'categoria')
@@ -259,13 +278,15 @@ export class EventosService {
         ])
         .where('evento.categoria_id = :categoriaId', { categoriaId })
         .orderBy('evento.fecha', 'ASC')
-        .getMany();
+        .skip(skip)
+        .take(limit)
+        .getManyAndCount();
 
-      if (eventos.length === 0) {
+      if (total === 0) {
         throw new NotFoundException(`No se encontraron eventos para la categoría ${categoriaId}`);
       }
 
-      return eventos;
+      return { items, total, page, lastPage: Math.ceil(total / limit) };
 
     } catch (error) {
       if (error instanceof NotFoundException) {
@@ -279,14 +300,15 @@ export class EventosService {
   // ============================================
   // OBTENER POR MODALIDAD
   // ============================================
-  async findByModalidad(modalidad: 'presencial' | 'virtual' | 'hibrida') {
+  async findByModalidad(modalidad: 'presencial' | 'virtual' | 'hibrida', page: number = 1, limit: number = 10) {
     try {
+      const skip = (page - 1) * limit;
       const hoy = new Date();
       hoy.setHours(0, 0, 0, 0);
 
       const modalidadEnum = modalidad as ModalidadEvento;
 
-      const eventos = await this.eventoRepo
+      const [items, total] = await this.eventoRepo
         .createQueryBuilder('evento')
         .leftJoinAndSelect('evento.investigador_organizador', 'investigador')
         .leftJoinAndSelect('evento.categoria', 'categoria')
@@ -309,12 +331,16 @@ export class EventosService {
         .where('evento.modalidad = :modalidad', { modalidad: modalidadEnum })
         .andWhere('evento.fecha >= :hoy', { hoy })
         .orderBy('evento.fecha', 'ASC')
-        .getMany();
+        .skip(skip)
+        .take(limit)
+        .getManyAndCount();
 
       return {
         modalidad,
-        total: eventos.length,
-        eventos
+        items,
+        total,
+        page,
+        lastPage: Math.ceil(total / limit)
       };
 
     } catch (error) {
@@ -326,9 +352,10 @@ export class EventosService {
   // ============================================
   // OBTENER POR INVESTIGADOR
   // ============================================
-  async findByInvestigador(investigadorId: number) {
+  async findByInvestigador(investigadorId: number, page: number = 1, limit: number = 10) {
     try {
-      const eventos = await this.eventoRepo
+      const skip = (page - 1) * limit;
+      const [items, total] = await this.eventoRepo
         .createQueryBuilder('evento')
         .leftJoinAndSelect('evento.categoria', 'categoria')
         .select([
@@ -345,11 +372,15 @@ export class EventosService {
         ])
         .where('evento.investigador_organizador_id = :investigadorId', { investigadorId })
         .orderBy('evento.fecha', 'DESC')
-        .getMany();
+        .skip(skip)
+        .take(limit)
+        .getManyAndCount();
 
       return {
-        total: eventos.length,
-        eventos
+        items,
+        total,
+        page,
+        lastPage: Math.ceil(total / limit)
       };
 
     } catch (error) {

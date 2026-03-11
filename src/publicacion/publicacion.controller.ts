@@ -29,6 +29,9 @@ export class PublicacionController {
       ],
       {
         storage: memoryStorage(),
+        limits: {
+          fileSize: 10 * 1024 * 1024, // Limitar a 10MB por archivo
+        },
         fileFilter: (req, file, cb) => {
           if (file.fieldname === 'pdf' && file.mimetype !== 'application/pdf') {
             return cb(
@@ -88,13 +91,20 @@ export class PublicacionController {
   }
 
   @Get()
-  findAll() {
-    return this.publicacionService.findAll();
+  findAll(
+    @Query('page') page: number = 1,
+    @Query('limit') limit: number = 10,
+  ) {
+    return this.publicacionService.findAll(+page, +limit);
   }
 
   @Get('investigador/:investigadorId')
-  findByInvestigador(@Param('investigadorId', ParseIntPipe) investigadorId: number) {
-    return this.publicacionService.findByInvestigador(investigadorId);
+  findByInvestigador(
+    @Param('investigadorId', ParseIntPipe) investigadorId: number,
+    @Query('page') page: number = 1,
+    @Query('limit') limit: number = 10,
+  ) {
+    return this.publicacionService.findByInvestigador(investigadorId, +page, +limit);
   }
 
   @Get(':id')
@@ -171,6 +181,13 @@ export class PublicacionController {
       res.set({
         'Content-Type': 'application/pdf',
         'Content-Disposition': `inline; filename="publicacion-${id}.pdf"`,
+      });
+
+      // Asegurar que el stream se destruya si la conexión se cierra prematuramente
+      res.on('close', () => {
+        if (stream && typeof stream.destroy === 'function') {
+          stream.destroy();
+        }
       });
 
       return stream.pipe(res);

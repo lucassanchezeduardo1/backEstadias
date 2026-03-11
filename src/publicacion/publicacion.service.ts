@@ -49,8 +49,10 @@ export class PublicacionService {
     }
   }
 
-  async findAll() {
-    return this.publicacionRepo.createQueryBuilder('publicacion')
+  async findAll(page: number = 1, limit: number = 10) {
+    const skip = (page - 1) * limit;
+    
+    const [items, total] = await this.publicacionRepo.createQueryBuilder('publicacion')
       .leftJoinAndSelect('publicacion.investigador_principal', 'investigador')
       .leftJoinAndSelect('publicacion.categoria', 'categoria')
       .select([
@@ -75,11 +77,22 @@ export class PublicacionService {
         'categoria.nombre'
       ])
       .orderBy('publicacion.created_at', 'DESC')
-      .getMany();
+      .skip(skip)
+      .take(limit)
+      .getManyAndCount();
+
+    return {
+      items,
+      total,
+      page,
+      lastPage: Math.ceil(total / limit)
+    };
   }
 
-  async findByInvestigador(investigadorId: number) {
-    return this.publicacionRepo.createQueryBuilder('publicacion')
+  async findByInvestigador(investigadorId: number, page: number = 1, limit: number = 10) {
+    const skip = (page - 1) * limit;
+
+    const [items, total] = await this.publicacionRepo.createQueryBuilder('publicacion')
       .leftJoinAndSelect('publicacion.categoria', 'categoria') // Assuming we only need category here since we know investigator
       .select([
         'publicacion.id',
@@ -100,7 +113,16 @@ export class PublicacionService {
       ])
       .where('publicacion.investigador_principal_id = :investigadorId', { investigadorId })
       .orderBy('publicacion.created_at', 'DESC')
-      .getMany();
+      .skip(skip)
+      .take(limit)
+      .getManyAndCount();
+
+    return {
+      items,
+      total,
+      page,
+      lastPage: Math.ceil(total / limit)
+    };
   }
 
   async findOne(id: number) {

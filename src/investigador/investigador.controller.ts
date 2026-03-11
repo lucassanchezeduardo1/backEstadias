@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseInterceptors, UploadedFile, BadRequestException, ParseIntPipe, Res } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseInterceptors, UploadedFile, BadRequestException, ParseIntPipe, Res, Query } from '@nestjs/common';
 import { InvestigadorService } from './investigador.service';
 import { CreateInvestigadorDto } from './dto/create-investigador.dto';
 import { UpdateInvestigadorDto } from './dto/update-investigador.dto';
@@ -17,7 +17,9 @@ export class InvestigadorController {
   }
 
   @Post()
-  @UseInterceptors(FileInterceptor('foto_perfil'))
+  @UseInterceptors(FileInterceptor('foto_perfil', {
+    limits: { fileSize: 5 * 1024 * 1024 } // 5MB
+  }))
   async create(
     @Body() createInvestigadorDto: CreateInvestigadorDto,
     @UploadedFile() foto: Express.Multer.File
@@ -48,19 +50,28 @@ export class InvestigadorController {
   }
 
   @Get('all')
-  async findAll() {
-    return await this.investigadorService.findAll();
+  async findAll(
+    @Query('page') page: number = 1,
+    @Query('limit') limit: number = 10,
+  ) {
+    return await this.investigadorService.findAll(+page, +limit);
   }
 
 
   @Get('aprobados')
-  async findAllAprobados() {
-    return await this.investigadorService.findAllAprobados();
+  async findAllAprobados(
+    @Query('page') page: number = 1,
+    @Query('limit') limit: number = 10,
+  ) {
+    return await this.investigadorService.findAllAprobados(+page, +limit);
   }
 
   @Get('pendientes')
-  async findAllPendientes() {
-    return await this.investigadorService.findAllPendientes();
+  async findAllPendientes(
+    @Query('page') page: number = 1,
+    @Query('limit') limit: number = 10,
+  ) {
+    return await this.investigadorService.findAllPendientes(+page, +limit);
   }
 
   @Get(':id')
@@ -70,7 +81,9 @@ export class InvestigadorController {
 
 
   @Patch(':id')
-  @UseInterceptors(FileInterceptor('foto_perfil'))
+  @UseInterceptors(FileInterceptor('foto_perfil', {
+    limits: { fileSize: 5 * 1024 * 1024 } // 5MB
+  }))
   async update(
     @Param('id', ParseIntPipe) id: number,
     @Body() updateInvestigadorDto: UpdateInvestigadorDto,

@@ -11,7 +11,9 @@ export class EventosController {
   constructor(private readonly eventosService: EventosService) { }
 
   @Post()
-  @UseInterceptors(FileInterceptor('imagen'))
+  @UseInterceptors(FileInterceptor('imagen', {
+    limits: { fileSize: 5 * 1024 * 1024 } // 5MB
+  }))
   async create(
     @Body() createEventoDto: CreateEventoDto,
     @UploadedFile() imagen: Express.Multer.File,
@@ -64,18 +66,27 @@ export class EventosController {
   // TODOS LOS EVENTOS
   // ============================================
   @Get('all')
-  async findAll() {
-    return await this.eventosService.findAll();
+  async findAll(
+    @Query('page') page: number = 1,
+    @Query('limit') limit: number = 10,
+  ) {
+    return await this.eventosService.findAll(+page, +limit);
   }
 
   @Get('proximos')
-  async findProximos() {
-    return await this.eventosService.findProximos();
+  async findProximos(
+    @Query('page') page: number = 1,
+    @Query('limit') limit: number = 10,
+  ) {
+    return await this.eventosService.findProximos(+page, +limit);
   }
 
   @Get('pasados')
-  async findPasados() {
-    return await this.eventosService.findPasados();
+  async findPasados(
+    @Query('page') page: number = 1,
+    @Query('limit') limit: number = 10,
+  ) {
+    return await this.eventosService.findPasados(+page, +limit);
   }
 
   @Get('estadisticas')
@@ -92,18 +103,30 @@ export class EventosController {
   }
 
   @Get('categoria/:categoriaId')
-  async findByCategoria(@Param('categoriaId', ParseIntPipe) categoriaId: number) {
-    return await this.eventosService.findByCategoria(categoriaId);
+  async findByCategoria(
+    @Param('categoriaId', ParseIntPipe) categoriaId: number,
+    @Query('page') page: number = 1,
+    @Query('limit') limit: number = 10,
+  ) {
+    return await this.eventosService.findByCategoria(categoriaId, +page, +limit);
   }
 
   @Get('modalidad/:modalidad')
-  async findByModalidad(@Param('modalidad') modalidad: 'presencial' | 'virtual' | 'hibrida') {
-    return await this.eventosService.findByModalidad(modalidad);
+  async findByModalidad(
+    @Param('modalidad') modalidad: 'presencial' | 'virtual' | 'hibrida',
+    @Query('page') page: number = 1,
+    @Query('limit') limit: number = 10,
+  ) {
+    return await this.eventosService.findByModalidad(modalidad, +page, +limit);
   }
 
   @Get('investigador/:investigadorId')
-  async findByInvestigador(@Param('investigadorId', ParseIntPipe) investigadorId: number) {
-    return await this.eventosService.findByInvestigador(investigadorId);
+  async findByInvestigador(
+    @Param('investigadorId', ParseIntPipe) investigadorId: number,
+    @Query('page') page: number = 1,
+    @Query('limit') limit: number = 10,
+  ) {
+    return await this.eventosService.findByInvestigador(investigadorId, +page, +limit);
   }
 
   @Get('mis-eventos')
@@ -121,7 +144,9 @@ export class EventosController {
   // ACTUALIZAR EVENTO (con imagen opcional)
   // ============================================
   @Patch(':id')
-  @UseInterceptors(FileInterceptor('imagen')) // ⬅️ Imagen opcional
+  @UseInterceptors(FileInterceptor('imagen', {
+    limits: { fileSize: 5 * 1024 * 1024 } // 5MB
+  })) // ⬅️ Imagen opcional
   async update(
     @Param('id', ParseIntPipe) id: number,
     @Body() updateEventoDto: UpdateEventoDto,

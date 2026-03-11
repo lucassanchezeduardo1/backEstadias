@@ -20,9 +20,14 @@ export class FavoritosController {
 
   @Get()
   // @UseGuards(JwtAuthGuard)
-  async findAll(@Request() req: any, @Query('usuarioId') queryUserId?: string) {
+  async findAll(
+    @Request() req: any,
+    @Query('usuarioId') queryUserId?: string,
+    @Query('page') page: number = 1,
+    @Query('limit') limit: number = 10,
+  ) {
     const usuarioId = req.user?.id || (queryUserId ? +queryUserId : 1);
-    return await this.favoritosService.findAll(usuarioId);
+    return await this.favoritosService.findAll(usuarioId, +page, +limit);
   }
 
   // OBTENER ESTADÍSTICAS DE FAVORITOS

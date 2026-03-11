@@ -60,9 +60,14 @@ export class UsuariosService {
     }
   }
 
-  async findAll() {
+  async findAll(page: number = 1, limit: number = 10) {
     try {
-      return await this.usuarioRepo.find();
+      const skip = (page - 1) * limit;
+      const [items, total] = await this.usuarioRepo.findAndCount({
+        skip,
+        take: limit,
+      });
+      return { items, total, page, lastPage: Math.ceil(total / limit) };
     } catch (error) {
       throw new InternalServerErrorException('Error al obtener los usuarios');
     }

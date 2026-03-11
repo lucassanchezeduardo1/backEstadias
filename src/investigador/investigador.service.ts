@@ -76,17 +76,23 @@ export class InvestigadorService {
     }
   }
 
-  async findAll() {
+  async findAll(page: number = 1, limit: number = 10) {
     try {
-      return await this.investigadorRepo.find();
+      const skip = (page - 1) * limit;
+      const [items, total] = await this.investigadorRepo.findAndCount({
+        skip,
+        take: limit,
+      });
+      return { items, total, page, lastPage: Math.ceil(total / limit) };
     } catch (error) {
       throw new InternalServerErrorException('Error al obtener los investigadores');
     }
   }
 
-  async findAllAprobados() {
+  async findAllAprobados(page: number = 1, limit: number = 10) {
     try {
-      const investigadores = await this.investigadorRepo.createQueryBuilder('investigador')
+      const skip = (page - 1) * limit;
+      const [items, total] = await this.investigadorRepo.createQueryBuilder('investigador')
         .select([
           'investigador.id',
           'investigador.nombre',
@@ -107,9 +113,11 @@ export class InvestigadorService {
         .where('investigador.estado = :estado', { estado: 'aprobado' })
         .loadRelationCountAndMap('investigador.num_publicaciones', 'investigador.publicaciones')
         .loadRelationCountAndMap('investigador.num_eventos', 'investigador.eventos')
-        .getMany();
+        .skip(skip)
+        .take(limit)
+        .getManyAndCount();
 
-      return investigadores;
+      return { items, total, page, lastPage: Math.ceil(total / limit) };
 
     } catch (error) {
       console.error('Error al obtener investigadores aprobados:', error);
@@ -117,9 +125,10 @@ export class InvestigadorService {
     }
   }
 
-  async findAllPendientes() {
+  async findAllPendientes(page: number = 1, limit: number = 10) {
     try {
-      const investigadores = await this.investigadorRepo.find({
+      const skip = (page - 1) * limit;
+      const [items, total] = await this.investigadorRepo.findAndCount({
         where: { estado: 'pendiente' },
         select: [
           'id',
@@ -130,10 +139,12 @@ export class InvestigadorService {
           'matricula',
           'institucion_id',
           'created_at'
-        ]
+        ],
+        skip,
+        take: limit,
       });
 
-      return investigadores;
+      return { items, total, page, lastPage: Math.ceil(total / limit) };
 
     } catch (error) {
       console.error('Error al obtener investigadores pendientes:', error);

@@ -10,16 +10,24 @@ import { AppModule } from './app.module';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-  // >>> AGREGA ESTA LÍNEA AQUÍ <<<
-  app.enableCors();
+  
+  // Habilitar CORS con configuración explícita
+  app.enableCors({
+    origin: true, // Permite todos los orígenes
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
+    credentials: true,
+  });
+
   app.useGlobalPipes(new ValidationPipe({
     whitelist: true,
     forbidNonWhitelisted: true,
     transform: true,
   }));
-  await app.listen(process.env.PORT ?? 3000);
 
-  // Opcional: imprimir en consola para saber que ya arrancó
-  console.log('Servidor corriendo en http://localhost:3000');
+  const port = process.env.PORT ?? 3000;
+  await app.listen(port);
+
+  console.log(`🚀 Servidor arrancado en http://localhost:${port}`);
+  console.log(`✅ CORS habilitado para todas las rutas`);
 }
 bootstrap();

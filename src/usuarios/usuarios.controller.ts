@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseInterceptors, UploadedFile, BadRequestException, Res } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseInterceptors, UploadedFile, BadRequestException, Res, Query } from '@nestjs/common';
 import { UsuariosService } from './usuarios.service';
 import { CreateUsuarioDto } from './dto/create-usuario.dto';
 import { UpdateUsuarioDto } from './dto/update-usuario.dto';
@@ -17,7 +17,9 @@ export class UsuariosController {
   }
 
   @Post()
-  @UseInterceptors(FileInterceptor('foto_perfil'))
+  @UseInterceptors(FileInterceptor('foto_perfil', {
+    limits: { fileSize: 5 * 1024 * 1024 } // 5MB
+  }))
   async create(
     @Body() createUsuarioDto: CreateUsuarioDto,
     @UploadedFile() foto: Express.Multer.File
@@ -40,8 +42,11 @@ export class UsuariosController {
   }
 
   @Get('all')
-  findAll() {
-    return this.usuariosService.findAll();
+  findAll(
+    @Query('page') page: number = 1,
+    @Query('limit') limit: number = 10,
+  ) {
+    return this.usuariosService.findAll(+page, +limit);
   }
 
   @Get(':id')
@@ -50,7 +55,9 @@ export class UsuariosController {
   }
 
   @Patch(':id')
-  @UseInterceptors(FileInterceptor('foto_perfil'))
+  @UseInterceptors(FileInterceptor('foto_perfil', {
+    limits: { fileSize: 5 * 1024 * 1024 } // 5MB
+  }))
   update(
     @Param('id') id: string,
     @Body() updateUsuarioDto: UpdateUsuarioDto,

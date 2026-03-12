@@ -6,16 +6,20 @@ import { Investigador } from './entities/investigador.entity';
 import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 
+import { GoogleDriveService } from '../google-drive/google-drive.service';
+
 @Injectable()
 export class InvestigadorService {
   constructor(
     @InjectRepository(Investigador)
-    private investigadorRepo: Repository<Investigador>) { }
+    private investigadorRepo: Repository<Investigador>,
+    private googleDriveService: GoogleDriveService,
+  ) { }
 
 
   async createInvestigador(
     createInvestigadorDto: CreateInvestigadorDto,
-    fotoBuffer: Buffer
+    imageUrl: string
   ) {
     try {
       // 1. Verificar si el email ya existe
@@ -37,7 +41,7 @@ export class InvestigadorService {
       }
 
       // 3. Verificar que se haya proporcionado la foto
-      if (!fotoBuffer) {
+      if (!imageUrl) {
         throw new BadRequestException('La foto de perfil es obligatoria');
       }
 
@@ -52,7 +56,7 @@ export class InvestigadorService {
       const newInvestigador = this.investigadorRepo.create({
         ...createInvestigadorDto,
         password: hashedPassword, //Contraseña encriptada
-        foto_perfil: fotoBuffer,  //Buffer de la imagen
+        foto_perfil: imageUrl,      //URL de la imagen
         estado: 'pendiente'       //Estado inicial
       });
 
@@ -200,7 +204,7 @@ export class InvestigadorService {
   async updateInvestigador(
     id: number,
     updateInvestigadorDto: UpdateInvestigadorDto,
-    fotoBuffer?: Buffer
+    imageUrl?: string
   ) {
     try {
       const investigador = await this.investigadorRepo.findOneBy({ id });
@@ -221,7 +225,7 @@ export class InvestigadorService {
       // Si se proporciona una nueva foto, actualizarla
       const datosActualizar = {
         ...updateInvestigadorDto,
-        ...(fotoBuffer && { foto_perfil: fotoBuffer })
+        ...(imageUrl && { foto_perfil: imageUrl })
       };
 
       // Actualizar los datos
@@ -327,6 +331,12 @@ export class InvestigadorService {
       if (!investigador) {
         throw new NotFoundException(`investigador con el id: ${id} no encontrado`);
       }
+
+      if (investigador.foto_perfil && typeof investigador.foto_perfil === 'string' && investigador.foto_perfil.startsWith('googleDrive://')) {
+        const fileId = investigador.foto_perfil.replace('googleDrive://', '');
+        await this.googleDriveService.deleteFile(fileId);
+      }
+
       await this.investigadorRepo.remove(investigador);
       return { message: `investigador con el id: ${id} se ha eliminado` };
 
@@ -379,7 +389,7 @@ export class InvestigadorService {
     }
   }
 
-  async getFoto(id: number) {
+  async getFoto(id: number): Promise<string | Buffer> {
     const investigador = await this.investigadorRepo.findOne({
       where: { id },
       select: ['id', 'foto_perfil']

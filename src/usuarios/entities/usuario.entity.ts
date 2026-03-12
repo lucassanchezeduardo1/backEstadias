@@ -11,8 +11,8 @@ export class Usuario {
     nombre: string;
     @Column({ length: 100, nullable: false })
     apellidos: string;
-    @Column({ type: 'mediumblob' })
-    foto_perfil: Buffer;
+    @Column({ type: 'varchar', length: 500, nullable: true })
+    foto_perfil: string | null;
     @Column({ length: 150, unique: true, nullable: false })
     email: string;
     @Column({ length: 100, nullable: false })

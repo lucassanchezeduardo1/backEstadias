@@ -5,8 +5,13 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { Evento } from './entities/evento.entity';
 import { Categoria } from 'src/categorias/entities/categoria.entity';
 
+import { GoogleDriveModule } from '../google-drive/google-drive.module';
+
 @Module({
-  imports:[TypeOrmModule.forFeature([Evento, Categoria])],
+  imports:[
+    TypeOrmModule.forFeature([Evento, Categoria]),
+    GoogleDriveModule,
+  ],
   controllers: [EventosController],
   providers: [EventosService],
 })

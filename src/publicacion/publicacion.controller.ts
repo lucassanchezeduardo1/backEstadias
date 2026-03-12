@@ -75,18 +75,38 @@ export class PublicacionController {
     const imagenContenido = files.img_contenido ? files.img_contenido[0] : null;
 
     // Subir a Google Drive
-    const pdfName = `${Date.now()}-${pdf.originalname}`;
-    const googleDriveId = await this.googleDriveService.uploadFile(
+    const pdfName = `PDF_${Date.now()}_${pdf.originalname}`;
+    const pdfDriveId = await this.googleDriveService.uploadFile(
       pdf.buffer,
       pdfName,
       pdf.mimetype,
+      'Publicaciones/PDFs',
     );
+
+    const portadaName = `PORTADA_${Date.now()}_${imagenPortada.originalname}`;
+    const portadaDriveId = await this.googleDriveService.uploadFile(
+      imagenPortada.buffer,
+      portadaName,
+      imagenPortada.mimetype,
+      'Publicaciones/Imagenes',
+    );
+
+    let contenidoDriveId: string | null = null;
+    if (imagenContenido) {
+      const contenidoName = `CONTENIDO_${Date.now()}_${imagenContenido.originalname}`;
+      contenidoDriveId = await this.googleDriveService.uploadFile(
+        imagenContenido.buffer,
+        contenidoName,
+        imagenContenido.mimetype,
+        'Publicaciones/Imagenes',
+      );
+    }
 
     return this.publicacionService.create(
       createDto,
-      imagenPortada.buffer,
-      imagenContenido ? imagenContenido.buffer : null,
-      `googleDrive://${googleDriveId}`,
+      `googleDrive://${portadaDriveId}`,
+      contenidoDriveId ? `googleDrive://${contenidoDriveId}` : null,
+      `googleDrive://${pdfDriveId}`,
     );
   }
 
@@ -132,29 +152,35 @@ export class PublicacionController {
 
   @Get(':id/imagen')
   async getImagen(@Param('id') id: number, @Res() res: Response) {
-    const publicacion =
-      await this.publicacionService.findOneWithImage(+id);
+    const publicacion = await this.publicacionService.findOneWithImage(+id);
 
-    res.set({
-      'Content-Type': 'image/jpeg',
-    });
+    if (publicacion.img_portada && typeof publicacion.img_portada === 'string' && publicacion.img_portada.startsWith('googleDrive://')) {
+      const fileId = publicacion.img_portada.replace('googleDrive://', '');
+      const stream = await this.googleDriveService.getFileStream(fileId);
+      res.set({ 'Content-Type': 'image/jpeg' });
+      return stream.pipe(res);
+    }
 
+    res.set({ 'Content-Type': 'image/jpeg' });
     res.send(publicacion.img_portada);
   }
 
   @Get(':id/imagen-contenido')
   async getImagenContenido(@Param('id') id: number, @Res() res: Response) {
-    const publicacion =
-      await this.publicacionService.findOneWithImage(+id);
+    const publicacion = await this.publicacionService.findOneWithImage(+id);
 
     if (!publicacion.img_contenido) {
       throw new NotFoundException('Esta publicación no tiene imagen de contenido');
     }
 
-    res.set({
-      'Content-Type': 'image/jpeg',
-    });
+    if (typeof publicacion.img_contenido === 'string' && publicacion.img_contenido.startsWith('googleDrive://')) {
+      const fileId = publicacion.img_contenido.replace('googleDrive://', '');
+      const stream = await this.googleDriveService.getFileStream(fileId);
+      res.set({ 'Content-Type': 'image/jpeg' });
+      return stream.pipe(res);
+    }
 
+    res.set({ 'Content-Type': 'image/jpeg' });
     res.send(publicacion.img_contenido);
   }
 

@@ -5,16 +5,19 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Usuario } from './entities/usuario.entity';
 import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
+import { GoogleDriveService } from '../google-drive/google-drive.service';
 @Injectable()
 export class UsuariosService {
   constructor(
     @InjectRepository(Usuario)
-    private usuarioRepo: Repository<Usuario>) { }
+    private usuarioRepo: Repository<Usuario>,
+    private googleDriveService: GoogleDriveService,
+  ) { }
 
 
   async createUsuario(
     CreateUsuarioDto: CreateUsuarioDto,
-    fotoBuffer: Buffer
+    imageUrl: string
   ) {
     try {
       // 1. Verificar si el email ya existe
@@ -37,7 +40,7 @@ export class UsuariosService {
       const newUsuario = this.usuarioRepo.create({
         ...CreateUsuarioDto,
         password: hashedPassword, //Contraseña encriptada
-        foto_perfil: fotoBuffer
+        foto_perfil: imageUrl
       });
 
       // 6. Guardar en la base de datos
@@ -91,7 +94,7 @@ export class UsuariosService {
   async updateUsuario(
     id: number,
     updateUsuarioDto: UpdateUsuarioDto,
-    fotoBuffer?: Buffer
+    imageUrl?: string
   ) {
     try {
       const usuario = await this.usuarioRepo.findOneBy({ id });
@@ -112,7 +115,7 @@ export class UsuariosService {
       // Si se proporciona una nueva foto, actualizarla
       const datosActualizar = {
         ...updateUsuarioDto,
-        ...(fotoBuffer && { foto_perfil: fotoBuffer })
+        ...(imageUrl && { foto_perfil: imageUrl })
       };
 
       // Actualizar los datos
@@ -147,6 +150,11 @@ export class UsuariosService {
       if (!usuario) {
         throw new NotFoundException(`Usuario con el id: ${id} no encontrado`);
       }
+      if (usuario.foto_perfil && typeof usuario.foto_perfil === 'string' && usuario.foto_perfil.startsWith('googleDrive://')) {
+        const fileId = usuario.foto_perfil.replace('googleDrive://', '');
+        await this.googleDriveService.deleteFile(fileId);
+      }
+
       await this.usuarioRepo.remove(usuario);
       return { message: `usuario con el id: ${id} se ha eliminado` };
 
@@ -178,7 +186,7 @@ export class UsuariosService {
     return usuarioSinDatosSensibles;
   }
 
-  async getFoto(id: number) {
+  async getFoto(id: number): Promise<string | Buffer> {
     const usuario = await this.usuarioRepo.findOne({
       where: { id },
       select: ['id', 'foto_perfil']

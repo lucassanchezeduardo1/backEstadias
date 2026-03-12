@@ -4,11 +4,15 @@ import { CreateEventoDto } from './dto/create-evento.dto';
 import { UpdateEventoDto } from './dto/update-evento.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { Response } from 'express';
+import { GoogleDriveService } from '../google-drive/google-drive.service';
 
 
 @Controller('eventos')
 export class EventosController {
-  constructor(private readonly eventosService: EventosService) { }
+  constructor(
+    private readonly eventosService: EventosService,
+    private readonly googleDriveService: GoogleDriveService,
+  ) { }
 
   @Post()
   @UseInterceptors(FileInterceptor('imagen', {
@@ -38,10 +42,19 @@ export class EventosController {
 
     const investigadorId = req.user?.id || createEventoDto.investigador_organizador_id || 1;
 
+    // Subir a Google Drive
+    const fileName = `EVENTO_${Date.now()}_${imagen.originalname}`;
+    const driveId = await this.googleDriveService.uploadFile(
+      imagen.buffer,
+      fileName,
+      imagen.mimetype,
+      'Eventos/Imagenes',
+    );
+
     return await this.eventosService.create(
       createEventoDto,
       investigadorId,
-      imagen.buffer // ⬅️ Buffer de la imagen
+      `googleDrive://${driveId}`
     );
   }
 
@@ -53,13 +66,19 @@ export class EventosController {
     @Param('id', ParseIntPipe) id: number,
     @Res() res: Response
   ) {
-    const imagenBuffer = await this.eventosService.getImagen(id);
+    const evento = await this.eventosService.findOne(id);
+    const imagenUrl = (await this.eventosService.getImagen(id)) as unknown as string;
 
+    if (imagenUrl && typeof imagenUrl === 'string' && imagenUrl.startsWith('googleDrive://')) {
+      const fileId = imagenUrl.replace('googleDrive://', '');
+      const stream = await this.googleDriveService.getFileStream(fileId);
+      res.setHeader('Content-Type', 'image/jpeg');
+      return stream.pipe(res);
+    }
+
+    // Retrocompatibilidad con Buffer
     res.setHeader('Content-Type', 'image/jpeg');
-    res.setHeader('Content-Length', imagenBuffer.length);
-    res.setHeader('Cache-Control', 'public, max-age=31536000');
-
-    res.send(imagenBuffer);
+    res.send(imagenUrl);
   }
 
   // ============================================
@@ -168,11 +187,23 @@ export class EventosController {
 
     const investigadorId = req.user?.id || (updateEventoDto.investigador_organizador_id ? Number(updateEventoDto.investigador_organizador_id) : 1);
 
+    let driveUrl: string | undefined = undefined;
+    if (imagen) {
+      const fileName = `EVENTO_${Date.now()}_${imagen.originalname}`;
+      const driveId = await this.googleDriveService.uploadFile(
+        imagen.buffer,
+        fileName,
+        imagen.mimetype,
+        'Eventos/Imagenes',
+      );
+      driveUrl = `googleDrive://${driveId}`;
+    }
+
     return await this.eventosService.update(
       id,
       updateEventoDto,
       investigadorId,
-      imagen?.buffer // ⬅️ Buffer opcional
+      driveUrl
     );
   }
 

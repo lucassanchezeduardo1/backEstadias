@@ -15,8 +15,8 @@ export class Evento {
     @Column({ type: 'varchar', length: 255 })
     titulo: string;
 
-    @Column({ type: 'mediumblob', nullable: false })
-    imagen_principal: Buffer;
+    @Column({ type: 'varchar', length: 500, nullable: false })
+    imagen_principal: string;
 
     @Column({ type: 'text' })
     descripcion: string;

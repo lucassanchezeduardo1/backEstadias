@@ -30,10 +30,10 @@ export class Publicacion {
 
   @Column({ length: 100, nullable: false })
   sub_categoria: string;
-  @Column({ type: 'mediumblob', nullable: false })
-  img_portada: Buffer;
-  @Column({ type: 'mediumblob', nullable: true })
-  img_contenido: Buffer | null;
+  @Column({ type: 'varchar', length: 500, nullable: false })
+  img_portada: string;
+  @Column({ type: 'varchar', length: 500, nullable: true })
+  img_contenido: string | null;
   @Column({ length: 500, nullable: true })
   colaboradores: string;
   @Column({ type: 'text', nullable: false })

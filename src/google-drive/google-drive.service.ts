@@ -26,9 +26,58 @@ export class GoogleDriveService {
     this.drive = google.drive({ version: 'v3', auth: oauth2Client });
   }
 
-  async uploadFile(buffer: Buffer, filename: string, mimetype: string): Promise<string> {
+  /**
+   * Obtiene el ID de una carpeta por su ruta (ej: "Publicaciones/Imagenes"), creándolas si no existen.
+   * @param path Ruta de la carpeta separada por "/"
+   * @param parentFolderId ID de la carpeta padre inicial (opcional)
+   */
+  async getOrCreateFolder(path: string, parentFolderId?: string): Promise<string> {
     try {
-      const folderId = this.configService.get<string>('GOOGLE_DRIVE_FOLDER_ID');
+      const segments = path.split('/').filter(s => s.length > 0);
+      let currentParentId = parentFolderId || this.configService.get<string>('GOOGLE_DRIVE_FOLDER_ID');
+
+      for (const segment of segments) {
+        // Buscar el segmento en los padres actuales
+        const query = `name = '${segment}' and mimeType = 'application/vnd.google-apps.folder' and '${currentParentId}' in parents and trashed = false`;
+        const response = await this.drive.files.list({
+          q: query,
+          fields: 'files(id, name)',
+          spaces: 'drive',
+        });
+
+        if (response.data.files && response.data.files.length > 0) {
+          currentParentId = response.data.files[0].id;
+        } else {
+          // Si no existe, crearla
+          const fileMetadata = {
+            name: segment,
+            mimeType: 'application/vnd.google-apps.folder',
+            parents: currentParentId ? [currentParentId] : [],
+          };
+
+          const folder = await this.drive.files.create({
+            requestBody: fileMetadata,
+            fields: 'id',
+          });
+
+          currentParentId = folder.data.id;
+        }
+      }
+
+      return currentParentId as string;
+    } catch (error) {
+      console.error(`Error al gestionar ruta ${path} en Google Drive:`, error);
+      throw new InternalServerErrorException(`Error al gestionar carpetas en Google Drive: ${path}`);
+    }
+  }
+
+  async uploadFile(buffer: Buffer, filename: string, mimetype: string, folderName?: string): Promise<string> {
+    try {
+      let folderId = this.configService.get<string>('GOOGLE_DRIVE_FOLDER_ID');
+
+      if (folderName) {
+        folderId = await this.getOrCreateFolder(folderName, folderId);
+      }
 
       const fileMetadata = {
         name: filename,

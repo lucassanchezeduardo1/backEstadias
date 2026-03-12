@@ -4,8 +4,13 @@ import { InvestigadorController } from './investigador.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Investigador } from './entities/investigador.entity';
 
+import { GoogleDriveModule } from '../google-drive/google-drive.module';
+
 @Module({
-  imports:[TypeOrmModule.forFeature([Investigador])],
+  imports:[
+    TypeOrmModule.forFeature([Investigador]),
+    GoogleDriveModule,
+  ],
   controllers: [InvestigadorController],
   providers: [InvestigadorService],
 })

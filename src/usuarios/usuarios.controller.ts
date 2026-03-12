@@ -4,16 +4,28 @@ import { CreateUsuarioDto } from './dto/create-usuario.dto';
 import { UpdateUsuarioDto } from './dto/update-usuario.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { Response } from 'express';
+import { GoogleDriveService } from '../google-drive/google-drive.service';
 
 @Controller('usuarios')
 export class UsuariosController {
-  constructor(private readonly usuariosService: UsuariosService) { }
+  constructor(
+    private readonly usuariosService: UsuariosService,
+    private readonly googleDriveService: GoogleDriveService,
+  ) { }
 
   @Get(':id/foto')
   async getFoto(@Param('id') id: string, @Res() res: Response) {
-    const buffer = await this.usuariosService.getFoto(+id);
+    const fotoUrl = await this.usuariosService.getFoto(+id);
+
+    if (fotoUrl && typeof fotoUrl === 'string' && fotoUrl.startsWith('googleDrive://')) {
+      const fileId = fotoUrl.replace('googleDrive://', '');
+      const stream = await this.googleDriveService.getFileStream(fileId);
+      res.set('Content-Type', 'image/jpeg');
+      return stream.pipe(res);
+    }
+
     res.set('Content-Type', 'image/jpeg');
-    res.send(buffer);
+    res.send(fotoUrl);
   }
 
   @Post()
@@ -38,7 +50,16 @@ export class UsuariosController {
       throw new BadRequestException('La imagen no puede superar 5MB');
     }
 
-    return this.usuariosService.createUsuario(createUsuarioDto, foto.buffer);
+    // Subir a Google Drive
+    const fileName = `PERFIL_${Date.now()}_${foto.originalname}`;
+    const driveId = await this.googleDriveService.uploadFile(
+      foto.buffer,
+      fileName,
+      foto.mimetype,
+      'Perfiles/Fotos',
+    );
+
+    return this.usuariosService.createUsuario(createUsuarioDto, `googleDrive://${driveId}`);
   }
 
   @Get('all')
@@ -63,7 +84,20 @@ export class UsuariosController {
     @Body() updateUsuarioDto: UpdateUsuarioDto,
     @UploadedFile() foto?: Express.Multer.File
   ) {
-    return this.usuariosService.updateUsuario(+id, updateUsuarioDto, foto?.buffer);
+    let driveUrlPromise: Promise<string | undefined> = Promise.resolve(undefined);
+    if (foto) {
+      const fileName = `PERFIL_${Date.now()}_${foto.originalname}`;
+      driveUrlPromise = this.googleDriveService.uploadFile(
+        foto.buffer,
+        fileName,
+        foto.mimetype,
+        'Perfiles/Fotos',
+      ).then(id => `googleDrive://${id}`);
+    }
+
+    return driveUrlPromise.then(driveUrl => 
+      this.usuariosService.updateUsuario(+id, updateUsuarioDto, driveUrl)
+    );
   }
 
   @Delete(':id')

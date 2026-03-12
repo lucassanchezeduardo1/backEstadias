@@ -5,17 +5,20 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Evento, ModalidadEvento } from './entities/evento.entity';
 import { LessThanOrEqual, MoreThanOrEqual, Repository } from 'typeorm';
 
+import { GoogleDriveService } from '../google-drive/google-drive.service';
+
 @Injectable()
 export class EventosService {
   constructor(
     @InjectRepository(Evento)
-    private eventoRepo: Repository<Evento>
+    private eventoRepo: Repository<Evento>,
+    private googleDriveService: GoogleDriveService,
   ) { }
 
   async create(
     createEventoDto: CreateEventoDto,
     investigadorId: number,
-    imagenBuffer: Buffer
+    imageUrl: string
   ) {
     try {
       // Validar que la fecha sea futura o hoy
@@ -42,7 +45,7 @@ export class EventosService {
       // Crear el evento
       const nuevoEvento = this.eventoRepo.create({
         titulo: createEventoDto.titulo,
-        imagen_principal: imagenBuffer, // ⬅️ Buffer de la imagen
+        imagen_principal: imageUrl, // ⬅️ URL de la imagen
         descripcion: createEventoDto.descripcion,
         tipo_evento: createEventoDto.tipo_evento,
         investigador_organizador_id: investigadorId,
@@ -77,7 +80,7 @@ export class EventosService {
   // ============================================
   // OBTENER IMAGEN DEL EVENTO
   // ============================================
-  async getImagen(id: number): Promise<Buffer> {
+  async getImagen(id: number): Promise<string | Buffer> {
     try {
       const evento = await this.eventoRepo.findOne({
         where: { id },
@@ -444,7 +447,7 @@ export class EventosService {
     id: number,
     updateEventoDto: UpdateEventoDto,
     investigadorId: number,
-    imagenBuffer?: Buffer
+    imageUrl?: string
   ) {
     try {
       const evento = await this.eventoRepo.findOneBy({ id });
@@ -479,8 +482,8 @@ export class EventosService {
       if (updateEventoDto.publico_objetivo !== undefined) evento.publico_objetivo = updateEventoDto.publico_objetivo;
 
       // Actualizar imagen si se proporciona
-      if (imagenBuffer) {
-        evento.imagen_principal = imagenBuffer;
+      if (imageUrl) {
+        evento.imagen_principal = imageUrl;
       }
 
       const savedEvento = await this.eventoRepo.save(evento);
@@ -515,6 +518,11 @@ export class EventosService {
 
       if (evento.investigador_organizador_id !== investigadorId) {
         throw new BadRequestException('No tienes permiso para eliminar este evento');
+      }
+
+      if (evento.imagen_principal && typeof evento.imagen_principal === 'string' && evento.imagen_principal.startsWith('googleDrive://')) {
+        const fileId = evento.imagen_principal.replace('googleDrive://', '');
+        await this.googleDriveService.deleteFile(fileId);
       }
 
       await this.eventoRepo.remove(evento);

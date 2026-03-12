@@ -21,8 +21,8 @@ export class PublicacionService {
 
   async create(
     createDto: CreatePublicacionDto,
-    imgPortadaBuffer: Buffer,
-    imgContenidoBuffer: Buffer | null,
+    imgPortadaUrl: string,
+    imgContenidoUrl: string | null,
     pdfUrl: string,
   ) {
     try {
@@ -34,8 +34,8 @@ export class PublicacionService {
         sintesis_ia: createDto.sintesis_ia,
         links_referencia: createDto.links_referencia,
         videos_url: createDto.videos_url,
-        img_portada: imgPortadaBuffer,
-        img_contenido: imgContenidoBuffer,
+        img_portada: imgPortadaUrl,
+        img_contenido: imgContenidoUrl,
         pdf_url: pdfUrl,
         investigador_principal_id: createDto.investigador_principal_id,
         categoria_id: createDto.categoria_id,
@@ -216,16 +216,19 @@ export class PublicacionService {
       throw new NotFoundException('Publicación no encontrada');
     }
 
-    if (publicacion.pdf_url) {
-      if (publicacion.pdf_url.startsWith('googleDrive://')) {
-        const fileId = publicacion.pdf_url.replace('googleDrive://', '');
-        await this.googleDriveService.deleteFile(fileId);
-      } else {
-        const path = `.${publicacion.pdf_url}`;
-        if (fs.existsSync(path)) {
-          fs.unlinkSync(path);
-        }
-      }
+    if (publicacion.pdf_url && publicacion.pdf_url.startsWith('googleDrive://')) {
+      const fileId = publicacion.pdf_url.replace('googleDrive://', '');
+      await this.googleDriveService.deleteFile(fileId);
+    }
+
+    if (publicacion.img_portada && publicacion.img_portada.startsWith('googleDrive://')) {
+      const fileId = publicacion.img_portada.replace('googleDrive://', '');
+      await this.googleDriveService.deleteFile(fileId);
+    }
+
+    if (publicacion.img_contenido && publicacion.img_contenido.startsWith('googleDrive://')) {
+      const fileId = publicacion.img_contenido.replace('googleDrive://', '');
+      await this.googleDriveService.deleteFile(fileId);
     }
 
     return this.publicacionRepo.remove(publicacion);

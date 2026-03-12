@@ -4,16 +4,28 @@ import { CreateInvestigadorDto } from './dto/create-investigador.dto';
 import { UpdateInvestigadorDto } from './dto/update-investigador.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { Response } from 'express';
+import { GoogleDriveService } from '../google-drive/google-drive.service';
 
 @Controller('investigador')
 export class InvestigadorController {
-  constructor(private readonly investigadorService: InvestigadorService) { }
+  constructor(
+    private readonly investigadorService: InvestigadorService,
+    private readonly googleDriveService: GoogleDriveService,
+  ) { }
 
   @Get(':id/foto')
   async getFoto(@Param('id', ParseIntPipe) id: number, @Res() res: Response) {
-    const buffer = await this.investigadorService.getFoto(id);
+    const fotoUrl = await this.investigadorService.getFoto(id);
+
+    if (fotoUrl && typeof fotoUrl === 'string' && fotoUrl.startsWith('googleDrive://')) {
+      const fileId = fotoUrl.replace('googleDrive://', '');
+      const stream = await this.googleDriveService.getFileStream(fileId);
+      res.set('Content-Type', 'image/jpeg');
+      return stream.pipe(res);
+    }
+
     res.set('Content-Type', 'image/jpeg');
-    res.send(buffer);
+    res.send(fotoUrl);
   }
 
   @Post()
@@ -43,9 +55,18 @@ export class InvestigadorController {
       throw new BadRequestException('La imagen no puede superar 5MB');
     }
 
+    // Subir a Google Drive
+    const fileName = `PERFIL_${Date.now()}_${foto.originalname}`;
+    const driveId = await this.googleDriveService.uploadFile(
+      foto.buffer,
+      fileName,
+      foto.mimetype,
+      'Perfiles/Fotos',
+    );
+
     return await this.investigadorService.createInvestigador(
       createInvestigadorDto,
-      foto.buffer
+      `googleDrive://${driveId}`
     );
   }
 
@@ -104,10 +125,22 @@ export class InvestigadorController {
       }
     }
 
+    let driveUrl: string | undefined = undefined;
+    if (foto) {
+      const fileName = `PERFIL_${Date.now()}_${foto.originalname}`;
+      const driveId = await this.googleDriveService.uploadFile(
+        foto.buffer,
+        fileName,
+        foto.mimetype,
+        'Perfiles/Fotos',
+      );
+      driveUrl = `googleDrive://${driveId}`;
+    }
+
     return await this.investigadorService.updateInvestigador(
       id,
       updateInvestigadorDto,
-      foto?.buffer
+      driveUrl
     );
   }
 

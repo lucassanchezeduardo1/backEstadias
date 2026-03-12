@@ -17,7 +17,7 @@ export class CreateAdministradorDto {
     @MinLength(8)
     @MaxLength(100)
     @IsString()
-    @Matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d@$!%*?&]{8,}$/,
+    @Matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/,
     { message: 'La contraseña debe contener al menos una mayúscula, una minúscula y un número'}
   )
     password:string

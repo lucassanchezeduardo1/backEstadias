@@ -27,7 +27,7 @@ async function bootstrap() {
   const port = process.env.PORT ?? 3000;
   await app.listen(port);
 
-  console.log(`🚀 Servidor arrancado en http://localhost:${port}`);
-  console.log(`✅ CORS habilitado para todas las rutas`);
+  console.log(`Servidor arrancado`);
+  console.log(`CORS habilitado para todas las rutas`);
 }
 bootstrap();

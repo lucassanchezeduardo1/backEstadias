@@ -17,21 +17,27 @@ import { GoogleDriveModule } from './google-drive/google-drive.module';
 
 @Module({
   imports: [
-    // CARGA VARIABLES DE ENTORNO (.env)
-    ConfigModule.forRoot({
-      isGlobal: true, // disponible en todo el proyecto
-    }),
-
+    ConfigModule.forRoot({isGlobal: true, }),
+    
     TypeOrmModule.forRoot({
-      type: 'mysql',
-      host: 'localhost',
-      port: 3306,
-      username: 'root',
-      password: '',
-      database: 'estadias_bd',
-      autoLoadEntities: true,
-      synchronize: true,
-    }),
+  type: 'mysql',
+  host: process.env.DB_HOST || 'mysql.railway.internal',
+  port: parseInt(process.env.DB_PORT || '3306', 10),
+  username: process.env.DB_USER || 'root',
+  password: process.env.DB_PASSWORD || '',
+  database: process.env.DB_NAME || 'railway',
+  autoLoadEntities: true,
+  synchronize: true,
+  connectorPackage: 'mysql2',
+  // 👇 CONFIGURACIÓN PARA RAILWAY:
+  connectTimeout: 60000,
+  acquireTimeout: 60000,
+  extra: {
+    ssl: false,  // 👈 DESHABILITA SSL temporalmente
+    connectionLimit: 10,
+    connectTimeout: 60000
+  }
+}),
     AdministradorModule,
     InvestigadorModule,
     InstitucionesModule,

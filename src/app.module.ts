@@ -21,6 +21,7 @@ import { GoogleDriveModule } from './google-drive/google-drive.module';
 
     TypeOrmModule.forRoot({
   type: 'mysql',
+  driver: require('mysql2'),
   host: process.env.DB_HOST || 'mysql.railway.internal',
   port: parseInt(process.env.DB_PORT || '3306', 10),
   username: process.env.DB_USER || 'root',

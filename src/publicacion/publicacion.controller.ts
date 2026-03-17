@@ -158,6 +158,13 @@ export class PublicacionController {
       const fileId = publicacion.img_portada.replace('googleDrive://', '');
       const stream = await this.googleDriveService.getFileStream(fileId);
       res.set({ 'Content-Type': 'image/jpeg' });
+      
+      res.on('close', () => {
+        if (stream && typeof (stream as any).destroy === 'function') {
+          (stream as any).destroy();
+        }
+      });
+
       return stream.pipe(res);
     }
 
@@ -177,6 +184,13 @@ export class PublicacionController {
       const fileId = publicacion.img_contenido.replace('googleDrive://', '');
       const stream = await this.googleDriveService.getFileStream(fileId);
       res.set({ 'Content-Type': 'image/jpeg' });
+
+      res.on('close', () => {
+        if (stream && typeof (stream as any).destroy === 'function') {
+          (stream as any).destroy();
+        }
+      });
+
       return stream.pipe(res);
     }
 

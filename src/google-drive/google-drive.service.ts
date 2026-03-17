@@ -1,35 +1,56 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import { Injectable, InternalServerErrorException, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { google } from 'googleapis';
-import * as fs from 'fs';
+import { google, drive_v3 } from 'googleapis';
 import { Readable } from 'stream';
 
 @Injectable()
 export class GoogleDriveService {
-  private drive;
+  private driveInstance: drive_v3.Drive | null = null;
+  private readonly logger = new Logger(GoogleDriveService.name);
 
-  constructor(private configService: ConfigService) {
-    const clientId = this.configService.get<string>('GOOGLE_DRIVE_CLIENT_ID');
-    const clientSecret = this.configService.get<string>('GOOGLE_DRIVE_CLIENT_SECRET');
-    const refreshToken = this.configService.get<string>('GOOGLE_DRIVE_REFRESH_TOKEN');
+  constructor(private configService: ConfigService) {}
 
-    const oauth2Client = new google.auth.OAuth2(
-      clientId,
-      clientSecret,
-      'https://developers.google.com/oauthplayground'
-    );
+  /**
+   * Lazily initializes and returns the Google Drive instance.
+   * This reduces memory usage by only creating the client when needed.
+   */
+  private get drive(): drive_v3.Drive {
+    if (this.driveInstance) {
+      return this.driveInstance;
+    }
 
-    oauth2Client.setCredentials({
-      refresh_token: refreshToken,
-    });
+    try {
+      const clientId = this.configService.get<string>('GOOGLE_DRIVE_CLIENT_ID');
+      const clientSecret = this.configService.get<string>('GOOGLE_DRIVE_CLIENT_SECRET');
+      const refreshToken = this.configService.get<string>('GOOGLE_DRIVE_REFRESH_TOKEN');
 
-    this.drive = google.drive({ version: 'v3', auth: oauth2Client });
+      if (!clientId || !clientSecret || !refreshToken) {
+        this.logger.error('Google Drive credentials are not fully configured in environment variables');
+        throw new InternalServerErrorException('Configuración de Google Drive incompleta');
+      }
+
+      const oauth2Client = new google.auth.OAuth2(
+        clientId,
+        clientSecret,
+        'https://developers.google.com/oauthplayground'
+      );
+
+      oauth2Client.setCredentials({
+        refresh_token: refreshToken,
+      });
+
+      this.driveInstance = google.drive({ version: 'v3', auth: oauth2Client });
+      this.logger.log('Google Drive client initialized successfully (lazy)');
+      
+      return this.driveInstance;
+    } catch (error) {
+      this.logger.error('Failed to initialize Google Drive client:', error.message);
+      throw new InternalServerErrorException('Error al inicializar el servicio de Google Drive');
+    }
   }
 
   /**
    * Obtiene el ID de una carpeta por su ruta (ej: "Publicaciones/Imagenes"), creándolas si no existen.
-   * @param path Ruta de la carpeta separada por "/"
-   * @param parentFolderId ID de la carpeta padre inicial (opcional)
    */
   async getOrCreateFolder(path: string, parentFolderId?: string): Promise<string> {
     try {
@@ -37,7 +58,6 @@ export class GoogleDriveService {
       let currentParentId = parentFolderId || this.configService.get<string>('GOOGLE_DRIVE_FOLDER_ID');
 
       for (const segment of segments) {
-        // Buscar el segmento en los padres actuales
         const query = `name = '${segment}' and mimeType = 'application/vnd.google-apps.folder' and '${currentParentId}' in parents and trashed = false`;
         const response = await this.drive.files.list({
           q: query,
@@ -46,9 +66,8 @@ export class GoogleDriveService {
         });
 
         if (response.data.files && response.data.files.length > 0) {
-          currentParentId = response.data.files[0].id;
+          currentParentId = response.data.files[0].id as string;
         } else {
-          // Si no existe, crearla
           const fileMetadata = {
             name: segment,
             mimeType: 'application/vnd.google-apps.folder',
@@ -56,17 +75,17 @@ export class GoogleDriveService {
           };
 
           const folder = await this.drive.files.create({
-            requestBody: fileMetadata,
+            requestBody: fileMetadata as any,
             fields: 'id',
           });
 
-          currentParentId = folder.data.id;
+          currentParentId = folder.data.id as string;
         }
       }
 
       return currentParentId as string;
     } catch (error) {
-      console.error(`Error al gestionar ruta ${path} en Google Drive:`, error);
+      this.logger.error(`Error al gestionar ruta ${path} en Google Drive:`, error.message);
       throw new InternalServerErrorException(`Error al gestionar carpetas en Google Drive: ${path}`);
     }
   }
@@ -96,9 +115,9 @@ export class GoogleDriveService {
         supportsAllDrives: true,
       });
 
-      return response.data.id;
+      return response.data.id as string;
     } catch (error) {
-      console.error('Error uploading to Google Drive:', error);
+      this.logger.error('Error uploading to Google Drive:', error.message);
       throw new InternalServerErrorException('Error al subir archivo a Google Drive');
     }
   }
@@ -111,11 +130,7 @@ export class GoogleDriveService {
       );
       return response.data;
     } catch (error) {
-      console.error('Error getting file from Google Drive:', error.message || error);
-      if (error.response) {
-        console.error('Data:', error.response.data);
-        console.error('Status:', error.response.status);
-      }
+      this.logger.error(`Error getting file ${fileId} from Google Drive:`, error.message);
       throw new InternalServerErrorException('Error al obtener archivo de Google Drive');
     }
   }
@@ -124,8 +139,8 @@ export class GoogleDriveService {
     try {
       await this.drive.files.delete({ fileId, supportsAllDrives: true });
     } catch (error) {
-      console.error('Error deleting file from Google Drive:', error);
-      // No lanzamos excepción si falla el borrado, solo logueamos
+      this.logger.warn(`Error deleting file ${fileId} from Google Drive:`, error.message);
     }
   }
 }
+

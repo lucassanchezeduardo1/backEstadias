@@ -48,7 +48,7 @@ import { GoogleDriveModule } from './google-drive/google-drive.module';
     EventosModule,
     FavoritosModule,
     AiModule,
-    //GoogleDriveModule,
+    GoogleDriveModule,
   ],
   controllers: [AppController],
   providers: [AppService],

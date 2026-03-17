@@ -18,7 +18,7 @@ import { GoogleDriveModule } from './google-drive/google-drive.module';
 @Module({
   imports: [
     ConfigModule.forRoot({isGlobal: true, }),
-    
+
     TypeOrmModule.forRoot({
   type: 'mysql',
   host: process.env.DB_HOST || 'mysql.railway.internal',
@@ -48,7 +48,7 @@ import { GoogleDriveModule } from './google-drive/google-drive.module';
     EventosModule,
     FavoritosModule,
     AiModule,
-    GoogleDriveModule,
+    //GoogleDriveModule,
   ],
   controllers: [AppController],
   providers: [AppService],

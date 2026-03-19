@@ -32,7 +32,6 @@ import { GoogleDriveModule } from './google-drive/google-drive.module';
   connectorPackage: 'mysql2',
   // 👇 CONFIGURACIÓN PARA RAILWAY:
   connectTimeout: 60000,
-  acquireTimeout: 60000,
   extra: {
     ssl: false,  // 👈 DESHABILITA SSL temporalmente
     connectionLimit: 10,

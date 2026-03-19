@@ -244,12 +244,37 @@ export class PublicacionController {
   }
 
   @Patch(':id')
+  @UseInterceptors(
+    FileFieldsInterceptor(
+      [
+        { name: 'img_portada', maxCount: 1 },
+        { name: 'img_contenido', maxCount: 1 },
+      ],
+      {
+        storage: memoryStorage(),
+        limits: { fileSize: 10 * 1024 * 1024 },
+        fileFilter: (req, file, cb) => {
+          if (!file.mimetype.startsWith('image/')) {
+            return cb(new BadRequestException('Solo se permiten imágenes'), false);
+          }
+          cb(null, true);
+        },
+      }
+    )
+  )
   update(
-    @Param('id') id: number,
+    @Param('id', ParseIntPipe) id: number,
     @Body() updateDto: UpdatePublicacionDto,
+    @UploadedFiles() files: {
+      img_portada?: Express.Multer.File[];
+      img_contenido?: Express.Multer.File[];
+    },
   ) {
-    return this.publicacionService.update(+id, updateDto);
+    const imgPortada = files?.img_portada?.[0];
+    const imgContenido = files?.img_contenido?.[0];
+    return this.publicacionService.update(+id, updateDto, imgPortada, imgContenido);
   }
+
 
   @Delete(':id')
   remove(@Param('id') id: number) {

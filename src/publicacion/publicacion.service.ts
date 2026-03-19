@@ -193,7 +193,12 @@ export class PublicacionService {
   }
 
 
-  async update(id: number, updateDto: UpdatePublicacionDto) {
+  async update(
+    id: number,
+    updateDto: UpdatePublicacionDto,
+    imgPortada?: Express.Multer.File,
+    imgContenido?: Express.Multer.File,
+  ) {
     const publicacion = await this.publicacionRepo.findOne({
       where: { id },
     });
@@ -202,10 +207,50 @@ export class PublicacionService {
       throw new NotFoundException('Publicación no encontrada');
     }
 
+    // Actualizar campos de texto
     Object.assign(publicacion, updateDto);
+
+    // Manejar imagen de portada si se proporciona una nueva
+    if (imgPortada) {
+      if (publicacion.img_portada && typeof publicacion.img_portada === 'string' && publicacion.img_portada.startsWith('googleDrive://')) {
+        const oldFileId = publicacion.img_portada.replace('googleDrive://', '');
+        await this.googleDriveService.deleteFile(oldFileId).catch(err => 
+          console.error(`Error al borrar portada vieja (${oldFileId}):`, err)
+        );
+      }
+      
+      const portadaName = `PORTADA_UPD_${Date.now()}_${imgPortada.originalname}`;
+      const driveId = await this.googleDriveService.uploadFile(
+        imgPortada.buffer,
+        portadaName,
+        imgPortada.mimetype,
+        'Publicaciones/Imagenes',
+      );
+      publicacion.img_portada = `googleDrive://${driveId}`;
+    }
+
+    // Manejar imagen de contenido si se proporciona una nueva
+    if (imgContenido) {
+      if (publicacion.img_contenido && typeof publicacion.img_contenido === 'string' && publicacion.img_contenido.startsWith('googleDrive://')) {
+        const oldFileId = publicacion.img_contenido.replace('googleDrive://', '');
+        await this.googleDriveService.deleteFile(oldFileId).catch(err => 
+          console.error(`Error al borrar contenido viejo (${oldFileId}):`, err)
+        );
+      }
+
+      const contenidoName = `CONTENIDO_UPD_${Date.now()}_${imgContenido.originalname}`;
+      const driveId = await this.googleDriveService.uploadFile(
+        imgContenido.buffer,
+        contenidoName,
+        imgContenido.mimetype,
+        'Publicaciones/Imagenes',
+      );
+      publicacion.img_contenido = `googleDrive://${driveId}`;
+    }
 
     return this.publicacionRepo.save(publicacion);
   }
+
 
   async remove(id: number) {
     const publicacion = await this.publicacionRepo.findOne({

@@ -481,8 +481,15 @@ export class EventosService {
       if (updateEventoDto.ponentes !== undefined) evento.ponentes = updateEventoDto.ponentes;
       if (updateEventoDto.publico_objetivo !== undefined) evento.publico_objetivo = updateEventoDto.publico_objetivo;
 
-      // Actualizar imagen si se proporciona
+      // Actualizar imagen si se proporciona una nueva
       if (imageUrl) {
+        // Borrar la imagen anterior si existe en Drive
+        if (evento.imagen_principal && typeof evento.imagen_principal === 'string' && evento.imagen_principal.startsWith('googleDrive://')) {
+          const oldFileId = evento.imagen_principal.replace('googleDrive://', '');
+          await this.googleDriveService.deleteFile(oldFileId).catch(err => 
+            console.error(`Error al borrar imagen de evento vieja (${oldFileId}):`, err)
+          );
+        }
         evento.imagen_principal = imageUrl;
       }
 
